@@ -1,0 +1,3780 @@
+/*
+ * Lottery Scanner — the ticket and the corner store.
+ * Printed matter: cream ticket paper, slab type, perforations and notches, number balls, halftone
+ * print. Royal blue fields open and close the page, ink is draw night, felt green holds the screens.
+ */
+.lot {
+  --paper: #fbf3e0;
+  --sheet: #fffaee;
+  --ink: #1b1a24;
+  --ink-2: #2b2a36;
+  --muted: rgba(27, 26, 36, 0.7);
+  --line: rgba(27, 26, 36, 0.14);
+  --line-strong: rgba(27, 26, 36, 0.34);
+  --white: #ffffff;
+  --blue: #1f42cf;
+  --blue-deep: #142d94;
+  --blue-soft: #dfe5ff;
+  --green: #0f9a58;
+  --green-soft: #e1f4e8;
+  --felt: #0d6a40;
+  --red: #dc2a33;
+  --red-deep: #a91c24;
+  --gold: #ffc21a;
+  --slab: 'Alfa Slab One', Rockwell, Georgia, serif;
+  --text: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --gutter: 32px;
+  --header-h: 68px;
+  --stub: 320px;
+  /* Zigzag tear along the top and bottom edges (thermal paper, ticket rolls). */
+  --tear: 9px;
+  --zigzag:
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(var(--tear) * 2) 51% repeat-x,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--tear) * 2) 51% repeat-x;
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.38;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.lot *,
+.lot *::before,
+.lot *::after {
+  box-sizing: border-box;
+}
+
+:where(.lot) :where(h1, h2, h3, p, ol, ul, dl, dd, figure) {
+  margin: 0;
+}
+
+:where(.lot) :where(h1, h2, h3) {
+  font-weight: 400;
+}
+
+:where(.lot) :where(button) {
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(.lot) :where(a) {
+  color: inherit;
+}
+
+:where(.lot) :where(img) {
+  display: block;
+}
+
+.lot-wrap {
+  width: 100%;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---------- Type ---------- */
+
+.lot-h2 {
+  font-family: var(--slab);
+  font-size: clamp(34px, 4.1vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.lot-h3 {
+  font-family: var(--slab);
+  font-size: 26px;
+  line-height: 1.08;
+}
+
+/* ---------- Section heading: a ticket line ---------- */
+
+.lot-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 26px;
+  align-items: start;
+  padding-bottom: 30px;
+  margin-bottom: 56px;
+  border-bottom: 2px dashed var(--line-strong);
+}
+
+/* The line letter sits in a box like the ones on a play slip, and is stamped in. */
+.lot-head-tag {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  width: 78px;
+  height: 78px;
+  border: 2.5px solid var(--red);
+  border-radius: 4px;
+  color: var(--ink);
+  line-height: 1;
+  transform: scale(1.4) rotate(-8deg);
+  opacity: 0;
+  transition:
+    transform 0.55s var(--ease-back) 0.25s,
+    opacity 0.3s ease 0.25s;
+}
+
+.lot-head[data-shown] .lot-head-tag {
+  transform: none;
+  opacity: 1;
+}
+
+.lot-head-tag small {
+  color: var(--red);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lot-head-tag b {
+  margin-top: 2px;
+  font-family: var(--slab);
+  font-size: 40px;
+  font-weight: 400;
+}
+
+.lot-head-text {
+  padding-top: 6px;
+}
+
+.lot-head-lead {
+  max-width: 660px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1.36;
+}
+
+/* ---------- Balls ---------- */
+
+.lot-ball {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: inset 0 0 0 0.09em var(--line-strong);
+  color: var(--ink);
+  font-size: var(--ball, 16px);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease,
+    color 0.25s ease,
+    opacity 0.3s ease;
+}
+
+.lot-ball > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  font-size: 0.9em;
+}
+
+.lot-ball-red,
+.lot-ball-gold {
+  box-shadow: none;
+}
+
+.lot-ball-red {
+  background: var(--red);
+}
+
+.lot-ball-gold {
+  background: var(--gold);
+}
+
+.lot-ball-red > span,
+.lot-ball-gold > span {
+  width: 70%;
+  height: 70%;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 0.74em;
+}
+
+.lot-ball.is-hit {
+  background: var(--green);
+  box-shadow: none;
+  color: var(--white);
+  animation: lot-hit 0.45s var(--ease-back);
+}
+
+.lot-ball.is-hit > span {
+  background: transparent;
+  color: var(--white);
+}
+
+.lot-ball.is-miss {
+  opacity: 0.38;
+}
+
+.lot-ball.is-now {
+  box-shadow: inset 0 0 0 0.12em var(--blue);
+}
+
+@keyframes lot-hit {
+  0% {
+    scale: 0.7;
+  }
+
+  60% {
+    scale: 1.18;
+  }
+}
+
+/* ---------- Paper ticket inside the camera (sized in em by its wrapper) ---------- */
+
+.lot-paper-shadow {
+  width: 16em;
+  filter: drop-shadow(0 0.9em 1.1em rgba(15, 23, 51, 0.28));
+}
+
+.lot-paper {
+  --tear: 0.42em;
+  position: relative;
+  padding: 1.35em 1.1em 1.25em;
+  background: var(--tint, var(--sheet));
+  color: #1d1f2a;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  -webkit-mask: var(--zigzag);
+  mask: var(--zigzag);
+}
+
+.lot-paper-megaMillions {
+  --tint: #fff3cc;
+}
+
+.lot-paper-powerball {
+  --tint: #ffeef0;
+}
+
+.lot-paper-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6em;
+  padding-bottom: 0.55em;
+  margin-bottom: 0.6em;
+  border-bottom: 0.1em dashed rgba(29, 31, 42, 0.35);
+}
+
+.lot-paper-head strong {
+  font-family: var(--slab);
+  font-size: 1.2em;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.lot-paper-head span {
+  font-size: 0.62em;
+  font-weight: 700;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.lot-paper-lines {
+  display: grid;
+  gap: 0.35em;
+  padding: 0;
+  list-style: none;
+}
+
+.lot-paper-lines li {
+  display: flex;
+  align-items: center;
+  gap: 0.18em;
+  font-size: 1.02em;
+  font-weight: 700;
+}
+
+.lot-paper-lines b {
+  width: 1.2em;
+  font-weight: 700;
+}
+
+.lot-paper-lines span {
+  padding: 0.12em 0.16em;
+  border-radius: 0.2em;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.lot-paper-lines span.is-read {
+  background: rgba(31, 66, 207, 0.16);
+  box-shadow: inset 0 0 0 0.09em var(--blue);
+}
+
+.lot-paper-ball {
+  margin-left: auto;
+}
+
+.lot-paper-ball i {
+  margin-right: 0.25em;
+  font-size: 0.66em;
+  font-style: normal;
+  opacity: 0.6;
+}
+
+.lot-paper-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75em;
+  font-size: 0.62em;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.lot-barcode {
+  height: 2em;
+  margin-top: 0.5em;
+  background: repeating-linear-gradient(
+    90deg,
+    #1d1f2a 0 0.12em,
+    transparent 0.12em 0.2em,
+    #1d1f2a 0.2em 0.26em,
+    transparent 0.26em 0.42em,
+    #1d1f2a 0.42em 0.6em,
+    transparent 0.6em 0.68em,
+    #1d1f2a 0.68em 0.74em,
+    transparent 0.74em 0.92em
+  );
+}
+
+/* Printed barcode with serial, used on stubs and in the footer. */
+.lot-barcode-block {
+  display: grid;
+  gap: 6px;
+  color: currentColor;
+}
+
+.lot-barcode-bars {
+  height: 46px;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0 3px,
+    transparent 3px 5px,
+    currentColor 5px 6px,
+    transparent 6px 10px,
+    currentColor 10px 14px,
+    transparent 14px 16px,
+    currentColor 16px 17px,
+    transparent 17px 21px,
+    currentColor 21px 23px,
+    transparent 23px 24px,
+    currentColor 24px 25px,
+    transparent 25px 29px
+  );
+}
+
+.lot-barcode-serial {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Buttons: a ticket with notched corners, pressed into the paper ---------- */
+
+.lot-cta {
+  --cta: var(--blue);
+  --cta-ink: var(--paper);
+  --cta-base: var(--ink);
+  --n: 8px;
+  --depth: 5px;
+  --notches:
+    radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) top left / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) top right / 51% 51% no-repeat,
+    radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) bottom left / 51% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) bottom right / 51% 51% no-repeat;
+  position: relative;
+  display: inline-grid;
+  min-height: 62px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: var(--cta-ink);
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s var(--ease-out);
+}
+
+.lot-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--cta-base);
+  -webkit-mask: var(--notches);
+  mask: var(--notches);
+  transform: translateY(var(--depth));
+  transition: transform 0.18s var(--ease-out);
+}
+
+.lot-cta-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: inherit;
+  padding: 0 30px;
+  background: var(--cta);
+  -webkit-mask: var(--notches);
+  mask: var(--notches);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.lot-cta-face svg {
+  flex: none;
+}
+
+.lot-cta:focus-visible {
+  outline: 3px solid var(--focus, var(--ink));
+  outline-offset: 6px;
+}
+
+@media (hover: hover) {
+  .lot-cta:hover {
+    transform: translateY(-2px);
+  }
+
+  .lot-cta:hover::before {
+    transform: translateY(calc(var(--depth) + 2px));
+  }
+}
+
+.lot-cta:active {
+  transform: translateY(calc(var(--depth) - 1px));
+}
+
+.lot-cta:active::before {
+  transform: translateY(1px);
+}
+
+.lot-cta-short {
+  display: none;
+}
+
+/* ---------- Creator ribbon ---------- */
+
+.lot-ribbon {
+  position: relative;
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.lot-ribbon p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lot-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.lot-ribbon-deal {
+  flex-shrink: 0;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* ---------- Header: a ticket strip with a perforated bottom edge ---------- */
+
+.lot-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.lot-header-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100% + 34px);
+  pointer-events: none;
+}
+
+.lot-header-tint {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(var(--header-h) + 7px);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  -webkit-mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 6px) no-repeat,
+    radial-gradient(circle at 50% 100%, #0000 5px, #000 5.5px) bottom / 15px 7px repeat-x;
+  mask:
+    linear-gradient(#000 0 0) top / 100% calc(100% - 6px) no-repeat,
+    radial-gradient(circle at 50% 100%, #0000 5px, #000 5.5px) bottom / 15px 7px repeat-x;
+}
+
+/* A row of perforation holes just above the scalloped edge. */
+.lot-header-tint::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 13px;
+  left: 0;
+  height: 4px;
+  background: radial-gradient(circle, var(--holes) 1.4px, transparent 1.9px) 0 0 / 9px 4px repeat-x;
+}
+
+.lot-header-tint-light {
+  --holes: rgba(27, 26, 36, 0.26);
+  background: rgba(251, 243, 224, 0.97);
+}
+
+.lot-header-tint-dark {
+  --holes: rgba(251, 243, 224, 0.26);
+  background: rgba(27, 26, 36, 0.96);
+}
+
+.lot-header[data-stuck='true'][data-tone='light'] .lot-header-tint-light,
+.lot-header[data-stuck='true'][data-tone='dark'] .lot-header-tint-dark {
+  opacity: 1;
+}
+
+.lot-header-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: var(--header-h);
+}
+
+.lot-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1.1;
+  transition: color 0.35s ease;
+}
+
+.lot-identity:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 4px;
+}
+
+.lot-identity img {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.lot-identity strong {
+  display: block;
+  font-family: var(--slab);
+  font-size: 22px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.lot-identity small {
+  display: block;
+  margin-top: 2px;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.66;
+}
+
+.lot-header-cta {
+  --n: 5px;
+  --depth: 3px;
+  min-height: 44px;
+}
+
+.lot-header-cta .lot-cta-face {
+  padding: 0 18px;
+  font-size: 18px;
+}
+
+.lot-header[data-tone='dark'] .lot-identity {
+  color: var(--paper);
+}
+
+.lot-header[data-tone='dark'] .lot-header-cta {
+  --cta: var(--paper);
+  --cta-ink: var(--ink);
+  --cta-base: rgba(0, 0, 0, 0.45);
+  --focus: var(--paper);
+}
+
+/* ---------- Hero: one giant ticket on the blue counter ---------- */
+
+.lot-hero {
+  position: relative;
+  margin-top: calc(var(--header-h) * -1);
+  padding: calc(var(--header-h) + 34px) 0 76px;
+  background: var(--blue);
+  isolation: isolate;
+}
+
+/* Halftone dots that grow toward the bottom-left corner, printed light on the blue. */
+.lot-hero::before,
+.lot-final::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  width: min(1000px, 90%);
+  aspect-ratio: 4 / 3;
+  background: url('./halftone.svg') left bottom / 100% 100% no-repeat;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.lot-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lot-ticket {
+  grid-area: 1 / 1;
+  align-self: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--stub);
+  color: var(--ink);
+  filter: drop-shadow(0 28px 32px rgba(6, 14, 64, 0.42));
+  animation: lot-deal 1s var(--ease-out) 0.05s both;
+}
+
+@keyframes lot-deal {
+  from {
+    opacity: 0;
+    transform: translateY(46px) rotate(-1.4deg);
+  }
+}
+
+.lot-ticket-main,
+.lot-ticket-stub {
+  --n: 17px;
+  position: relative;
+  background: var(--paper);
+}
+
+.lot-ticket-main {
+  padding: 0 48px 30px;
+  border-radius: 6px 0 0 6px;
+  -webkit-mask:
+    radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) top / 100% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) bottom / 100% 51% no-repeat;
+  mask:
+    radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) top / 100% 51% no-repeat,
+    radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) bottom / 100% 51% no-repeat;
+}
+
+.lot-ticket-stub {
+  display: flex;
+  flex-direction: column;
+  padding: 0 34px 30px;
+  border-radius: 0 6px 6px 0;
+  -webkit-mask:
+    radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) top / 100% 51% no-repeat,
+    radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) bottom / 100% 51% no-repeat;
+  mask:
+    radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) top / 100% 51% no-repeat,
+    radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) bottom / 100% 51% no-repeat;
+}
+
+/* Perforation between the ticket and its stub. */
+.lot-ticket-stub::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--n) + 6px);
+  bottom: calc(var(--n) + 6px);
+  left: -2px;
+  width: 5px;
+  background: radial-gradient(circle, rgba(27, 26, 36, 0.4) 1.8px, transparent 2.3px) 0 0 / 5px 10px repeat-y;
+}
+
+.lot-ticket-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 58px;
+  margin: 0 -48px 36px;
+  padding: 0 48px;
+  background: var(--red);
+  color: var(--paper);
+}
+
+.lot-ticket-band b {
+  font-family: var(--slab);
+  font-size: 23px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.lot-ticket-band span,
+.lot-stub-band {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lot-stub-band {
+  display: flex;
+  align-items: center;
+  height: 58px;
+  margin: 0 -34px 30px;
+  padding: 0 34px;
+  background: var(--red);
+  color: rgba(251, 243, 224, 0.82);
+  font-variant-numeric: tabular-nums;
+}
+
+.lot-h1 {
+  font-family: var(--slab);
+  font-size: clamp(44px, 6vw, 88px);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+}
+
+/* Each printed line rises out of its own mask. */
+.lot-h1-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.lot-h1-line:first-child {
+  white-space: nowrap;
+}
+
+.lot-h1-line > span {
+  display: inline-block;
+  animation: lot-rise 0.9s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 110ms + 250ms);
+}
+
+@keyframes lot-rise {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+/* The last word is printed under scratch-off latex that gets scratched away. */
+.lot-scratch-word {
+  position: relative;
+  display: inline-block;
+  color: var(--green);
+}
+
+.lot-scratch-word > i {
+  position: absolute;
+  inset: 0.1em -0.08em 0.02em -0.1em;
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.34) 0 1px, transparent 1px 6px),
+    #c4c7cd;
+  border-radius: 2px;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 100' preserveAspectRatio='none'%3E%3Cpath d='M150 0L158 9L146 18L160 27L145 37L159 47L144 57L161 67L146 77L158 87L149 100H300V0Z'/%3E%3C/svg%3E") 100% 0 / 300% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 100' preserveAspectRatio='none'%3E%3Cpath d='M150 0L158 9L146 18L160 27L145 37L159 47L144 57L161 67L146 77L158 87L149 100H300V0Z'/%3E%3C/svg%3E") 100% 0 / 300% 100% no-repeat;
+  animation: lot-scratch 1.15s cubic-bezier(0.55, 0.1, 0.35, 1) 1.35s forwards;
+}
+
+@keyframes lot-scratch {
+  to {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
+.lot-hero-lead {
+  /* Stays clear of the phone resting on the right of the ticket. */
+  max-width: min(480px, calc(100% - 294px));
+  margin-top: 24px;
+  color: var(--muted);
+  font-size: 23px;
+  line-height: 1.34;
+  animation: lot-in 0.9s var(--ease-out) 0.7s both;
+}
+
+@keyframes lot-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.lot-fields {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: min(500px, calc(100% - 294px));
+  margin-top: 30px;
+  border-top: 2px solid var(--ink);
+  animation: lot-in 0.9s var(--ease-out) 0.85s both;
+}
+
+.lot-fields > div {
+  padding: 10px 20px 0 0;
+  margin-right: 20px;
+  border-right: 1.5px dashed var(--line-strong);
+}
+
+.lot-fields > div:last-child {
+  margin-right: 0;
+  border-right: 0;
+}
+
+.lot-fields dt {
+  color: var(--red);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lot-fields dd {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.lot-ticket-serial {
+  margin-top: 30px;
+  color: rgba(27, 26, 36, 0.5);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.lot-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+}
+
+.lot-price strong {
+  font-family: var(--slab);
+  font-size: 58px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.lot-price-regular strong {
+  font-size: 40px;
+}
+
+.lot-price s {
+  color: var(--muted);
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.lot-price span {
+  width: 100%;
+  margin-top: 4px;
+  color: var(--red);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lot-stub-offer {
+  margin-block: auto;
+  padding-bottom: 12px;
+}
+
+.lot-ticket-stub .lot-cta {
+  width: 100%;
+  margin-top: 22px;
+}
+
+.lot-terms {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.lot-stub-code {
+  padding-top: 24px;
+  color: var(--ink);
+}
+
+/* The phone scanning the ticket: it rests on the ticket and breaks out of its bottom edge. */
+.lot-scan {
+  position: relative;
+  z-index: 3;
+  grid-area: 1 / 1;
+  align-self: start;
+  justify-self: end;
+  width: 272px;
+  margin-top: 196px;
+  margin-right: calc(var(--stub) + 46px);
+}
+
+.lot-phone {
+  position: relative;
+  padding: 10px;
+  border-radius: 48px;
+  background: #121219;
+  box-shadow:
+    inset 0 0 0 2px #2d2d38,
+    0 46px 60px -30px rgba(6, 12, 50, 0.7);
+  rotate: 3deg;
+  animation: lot-phone-in 1.1s var(--ease-out) 0.35s both;
+}
+
+@keyframes lot-phone-in {
+  from {
+    opacity: 0;
+    transform: translateY(70px) rotate(4deg);
+  }
+}
+
+.lot-screen {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 280 / 600;
+  border-radius: 38px;
+  background: #f2f4f9;
+  container-type: inline-size;
+  isolation: isolate;
+}
+
+/* Everything inside the screen is sized in screen units, so the phone scales as one piece. */
+.lot-screen > * {
+  --u: calc(100cqw / 280);
+}
+
+.lot-island {
+  position: absolute;
+  top: calc(10 * var(--u));
+  left: 50%;
+  z-index: 6;
+  width: calc(84 * var(--u));
+  height: calc(24 * var(--u));
+  border-radius: calc(14 * var(--u));
+  background: #05060a;
+  transform: translateX(-50%);
+}
+
+.lot-statusbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(44 * var(--u));
+  padding: 0 calc(26 * var(--u)) 0 calc(30 * var(--u));
+  color: var(--ink);
+  font-size: calc(14 * var(--u));
+  font-weight: 700;
+}
+
+.lot-status-icons {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+}
+
+.lot-status-icons i {
+  width: calc(15 * var(--u));
+  height: calc(9 * var(--u));
+  border-radius: calc(2 * var(--u));
+  background: currentColor;
+}
+
+.lot-status-icons i + i {
+  width: calc(12 * var(--u));
+  clip-path: polygon(50% 100%, 0 25%, 20% 0, 80% 0, 100% 25%);
+}
+
+.lot-status-icons b {
+  width: calc(22 * var(--u));
+  height: calc(11 * var(--u));
+  padding: calc(1 * var(--u));
+  border: calc(1.5 * var(--u)) solid currentColor;
+  border-radius: calc(3 * var(--u));
+  background: linear-gradient(currentColor 0 0) left / 80% 100% no-repeat;
+  background-clip: content-box;
+}
+
+.lot-cam {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+}
+
+.lot-cam-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(46 * var(--u));
+  margin-top: calc(44 * var(--u));
+  padding: 0 calc(18 * var(--u));
+  font-size: calc(17 * var(--u));
+}
+
+.lot-cam-bar strong {
+  font-weight: 700;
+}
+
+.lot-cam-bar svg {
+  width: calc(18 * var(--u));
+  height: calc(18 * var(--u));
+}
+
+.lot-cam-feed {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #2a2620;
+}
+
+.lot-cam-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(3px) brightness(0.5) saturate(0.7);
+  transform: scale(1.12);
+}
+
+.lot-cam-ticket {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: calc(11 * var(--u));
+  transform: translate(-50%, -52%) rotate(-4deg);
+  filter: drop-shadow(0 1em 1.2em rgba(0, 0, 0, 0.45));
+  animation: lot-handheld 5s ease-in-out infinite;
+}
+
+@keyframes lot-handheld {
+  50% {
+    translate: calc(3 * var(--u)) calc(-4 * var(--u));
+  }
+}
+
+.lot-finder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(214 * var(--u));
+  height: calc(196 * var(--u));
+  border: calc(1.5 * var(--u)) solid #5a7dff;
+  border-radius: calc(8 * var(--u));
+  box-shadow: 0 0 0 calc(400 * var(--u)) rgba(0, 0, 0, 0.28);
+  transform: translate(-50%, -52%);
+}
+
+[data-phase='aim'] .lot-finder {
+  animation: lot-finder-in 0.9s var(--ease-out) both;
+}
+
+@keyframes lot-finder-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -52%) scale(1.25);
+  }
+}
+
+.lot-finder-line {
+  position: absolute;
+  top: 0;
+  right: calc(6 * var(--u));
+  left: calc(6 * var(--u));
+  height: calc(2 * var(--u));
+  background: #3ddc84;
+  opacity: 0;
+}
+
+[data-phase='read'] .lot-finder-line {
+  animation: lot-scan-y 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes lot-scan-y {
+  from {
+    top: 4%;
+    opacity: 1;
+  }
+
+  to {
+    top: 95%;
+    opacity: 1;
+  }
+}
+
+.lot-cam-hint {
+  position: absolute;
+  bottom: calc(14 * var(--u));
+  left: 50%;
+  padding: calc(6 * var(--u)) calc(12 * var(--u));
+  border-radius: calc(20 * var(--u));
+  background: rgba(0, 0, 0, 0.62);
+  color: var(--white);
+  font-size: calc(12.5 * var(--u));
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: lot-fade 0.4s var(--ease-out) both;
+}
+
+@keyframes lot-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.lot-cam-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: calc(104 * var(--u));
+  padding: 0 calc(24 * var(--u)) calc(14 * var(--u));
+  color: #7b8197;
+}
+
+.lot-cam-controls svg {
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
+}
+
+.lot-shutter {
+  width: calc(56 * var(--u));
+  height: calc(56 * var(--u));
+  border: calc(4 * var(--u)) solid var(--blue);
+  border-radius: 50%;
+}
+
+[data-phase='read'] .lot-shutter {
+  animation: lot-press 0.5s ease both;
+}
+
+@keyframes lot-press {
+  40% {
+    scale: 0.86;
+    background: var(--blue-soft);
+  }
+}
+
+.lot-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(44 * var(--u));
+  background: #f2f4f9;
+  transform: translateY(102%);
+  transition: transform 0.6s var(--ease-out);
+}
+
+.lot-sheet.is-open {
+  transform: none;
+}
+
+.lot-sheet-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(40 * var(--u));
+  font-size: calc(17 * var(--u));
+}
+
+.lot-sheet-nav strong {
+  font-weight: 700;
+}
+
+.lot-sheet-nav span {
+  position: absolute;
+  left: calc(10 * var(--u));
+  display: flex;
+  align-items: center;
+  color: var(--blue);
+  font-size: calc(15 * var(--u));
+}
+
+.lot-sheet-nav svg {
+  width: calc(18 * var(--u));
+  height: calc(18 * var(--u));
+}
+
+.lot-sheet-card,
+.lot-rows {
+  margin: calc(6 * var(--u)) calc(12 * var(--u)) 0;
+  padding: calc(12 * var(--u));
+  border-radius: calc(14 * var(--u));
+  background: var(--white);
+}
+
+.lot-sheet-card strong {
+  display: block;
+  font-size: calc(15 * var(--u));
+  font-weight: 700;
+}
+
+.lot-sheet-date {
+  display: block;
+  color: var(--muted);
+  font-size: calc(11.5 * var(--u));
+}
+
+.lot-sheet-label {
+  display: block;
+  margin-top: calc(8 * var(--u));
+  color: var(--muted);
+  font-size: calc(10 * var(--u));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lot-sheet-draw {
+  display: flex;
+  gap: calc(5 * var(--u));
+  margin-top: calc(6 * var(--u));
+  --ball: calc(12.5 * var(--u));
+}
+
+.lot-rows {
+  display: grid;
+  gap: calc(4 * var(--u));
+  margin-top: calc(10 * var(--u));
+  padding: calc(8 * var(--u));
+  list-style: none;
+}
+
+.lot-row {
+  display: grid;
+  grid-template-columns: calc(20 * var(--u)) calc(10 * var(--u)) minmax(0, 1fr);
+  align-items: center;
+  column-gap: calc(6 * var(--u));
+  row-gap: calc(4 * var(--u));
+  padding: calc(7 * var(--u)) calc(6 * var(--u));
+  border: calc(1.5 * var(--u)) solid transparent;
+  border-radius: calc(12 * var(--u));
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.lot-row > b {
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+}
+
+.lot-row.is-win {
+  border-color: var(--green);
+  background: var(--green-soft);
+}
+
+.lot-row-status {
+  display: grid;
+  place-items: center;
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
+  border: calc(1.5 * var(--u)) dashed var(--line-strong);
+  border-radius: 50%;
+  color: var(--white);
+}
+
+.lot-row.is-win .lot-row-status,
+.lot-row.is-miss .lot-row-status {
+  border: 0;
+  animation: lot-pop 0.35s var(--ease-back);
+}
+
+@keyframes lot-pop {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+.lot-row.is-win .lot-row-status {
+  background: var(--green);
+}
+
+.lot-row.is-miss .lot-row-status {
+  background: #ef5466;
+}
+
+.lot-row-status svg {
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
+  stroke-width: 3;
+}
+
+.lot-row-balls {
+  display: flex;
+  gap: calc(3.5 * var(--u));
+  --ball: calc(12 * var(--u));
+}
+
+.lot-row-result {
+  grid-column: 3;
+  min-height: 1.3em;
+  color: var(--muted);
+  font-size: calc(11 * var(--u));
+  font-weight: 600;
+}
+
+.lot-row.is-win .lot-row-result {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.lot-summary {
+  margin: calc(10 * var(--u)) calc(12 * var(--u)) 0;
+  padding: calc(9 * var(--u)) calc(12 * var(--u));
+  border-radius: calc(12 * var(--u));
+  background: #e3e6ef;
+  font-size: calc(14 * var(--u));
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(calc(8 * var(--u)));
+  transition:
+    opacity 0.35s ease,
+    transform 0.45s var(--ease-out);
+}
+
+.lot-summary.is-shown {
+  opacity: 1;
+  transform: none;
+}
+
+.lot-summary.is-win {
+  background: var(--green);
+  color: var(--white);
+  animation: lot-hit 0.5s var(--ease-back);
+}
+
+.lot-sheet-note {
+  margin: auto calc(20 * var(--u)) 0;
+  padding-top: calc(10 * var(--u));
+  color: var(--muted);
+  font-size: calc(10 * var(--u));
+  line-height: 1.3;
+  text-align: center;
+}
+
+.lot-sheet-done {
+  display: grid;
+  place-items: center;
+  height: calc(38 * var(--u));
+  margin: calc(8 * var(--u)) calc(14 * var(--u)) calc(22 * var(--u));
+  border-radius: calc(12 * var(--u));
+  background: var(--blue);
+  color: var(--white);
+  font-size: calc(15 * var(--u));
+  font-weight: 700;
+}
+
+/* iOS-style notification beside the phone once a check is done. */
+.lot-toast {
+  position: absolute;
+  top: 318px;
+  left: calc(100% - 34px);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 276px;
+  padding: 11px 14px 11px 11px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow:
+    0 0 0 1px rgba(27, 26, 36, 0.08),
+    0 22px 40px -16px rgba(6, 12, 50, 0.55);
+  color: var(--ink);
+  animation: lot-toast 3.6s var(--ease-out) both;
+}
+
+.lot-toast img {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 9px;
+}
+
+.lot-toast > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.22;
+}
+
+.lot-toast small {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lot-toast em {
+  font-style: normal;
+}
+
+.lot-toast strong {
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lot-toast > span > span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes lot-toast {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.92);
+  }
+
+  12%,
+  82% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.lot-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 26px;
+  text-align: center;
+  animation: lot-in 0.8s var(--ease-out) 1.1s both;
+}
+
+.lot-segment {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 6px;
+  background: rgba(6, 14, 64, 0.32);
+}
+
+.lot-segment-tab {
+  height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: rgba(251, 243, 224, 0.78);
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.lot-segment-tab:hover {
+  color: var(--paper);
+}
+
+.lot-segment-tab:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+
+.lot-segment-tab[aria-selected='true'] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.lot-picker-note {
+  max-width: 250px;
+  margin-top: 10px;
+  color: rgba(251, 243, 224, 0.72);
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+/* The CHECKED stamp lands on the ticket each time a check finishes. */
+.lot-stamp {
+  position: relative;
+  z-index: 2;
+  grid-area: 1 / 1;
+  align-self: start;
+  justify-self: end;
+  margin-top: 536px;
+  margin-right: calc(var(--stub) + 46px + 272px + 18px);
+  padding: 10px 16px 7px;
+  border: 4px solid var(--green);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 3px var(--paper),
+    inset 0 0 0 5px var(--green);
+  color: var(--green);
+  font-family: var(--slab);
+  font-size: 32px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  rotate: -12deg;
+  mix-blend-mode: multiply;
+  opacity: 0.92;
+  pointer-events: none;
+  animation: lot-stamp 0.5s var(--ease-out) both;
+}
+
+@keyframes lot-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(2.3);
+  }
+
+  60% {
+    opacity: 0.92;
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+/* ---------- Sections ---------- */
+
+.lot-section {
+  position: relative;
+  padding: 128px 0;
+}
+
+/* ---------- Line A: how it works ---------- */
+
+.lot-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+  padding: 0;
+  list-style: none;
+}
+
+/* The dotted line the numbered balls roll along. */
+.lot-steps::before {
+  content: '';
+  position: absolute;
+  top: 31px;
+  right: 0;
+  left: 32px;
+  height: 4px;
+  background: radial-gradient(circle, var(--line-strong) 1.7px, transparent 2.2px) 0 0 / 11px 4px repeat-x;
+}
+
+.lot-step {
+  position: relative;
+}
+
+.lot-step-ball {
+  --ball: 32px;
+  font-family: var(--slab);
+  box-shadow:
+    inset 0 0 0 3px var(--ink),
+    0 0 0 8px var(--paper);
+  transform: translateX(-140px) rotate(-320deg);
+  opacity: 0;
+  transition:
+    transform 1.1s var(--ease-out),
+    opacity 0.4s ease;
+  transition-delay: calc(var(--reveal-delay, 0ms) + 150ms);
+}
+
+.lot-step-ball > span {
+  font-size: 0.8em;
+}
+
+.lot-step[data-shown] .lot-step-ball {
+  transform: none;
+  opacity: 1;
+}
+
+.lot-step-art {
+  display: flex;
+  align-items: center;
+  height: 128px;
+  margin: 28px 0 22px;
+}
+
+.lot-step p {
+  max-width: 320px;
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+/* Step 1: the app's Scan Ticket button, tapped */
+.lot-mini-scan {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 58px;
+  padding: 0 24px;
+  border-radius: 14px;
+  background: var(--blue);
+  color: var(--white);
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.lot-mini-scan::after {
+  content: '';
+  position: absolute;
+  right: 26px;
+  bottom: 12px;
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  opacity: 0;
+  animation: lot-tap 2.6s ease-out infinite;
+}
+
+@keyframes lot-tap {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+
+  45%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Step 2: the camera frame around a ticket */
+.lot-mini-finder {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 170px;
+  height: 118px;
+  --c: var(--blue);
+  background:
+    linear-gradient(var(--c) 0 0) top left / 26px 3px,
+    linear-gradient(var(--c) 0 0) top left / 3px 26px,
+    linear-gradient(var(--c) 0 0) top right / 26px 3px,
+    linear-gradient(var(--c) 0 0) top right / 3px 26px,
+    linear-gradient(var(--c) 0 0) bottom left / 26px 3px,
+    linear-gradient(var(--c) 0 0) bottom left / 3px 26px,
+    linear-gradient(var(--c) 0 0) bottom right / 26px 3px,
+    linear-gradient(var(--c) 0 0) bottom right / 3px 26px;
+  background-repeat: no-repeat;
+}
+
+.lot-mini-finder::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  left: 12px;
+  height: 2px;
+  background: var(--green);
+  animation: lot-mini-scan 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes lot-mini-scan {
+  from {
+    top: 18%;
+  }
+
+  to {
+    top: 80%;
+  }
+}
+
+.lot-mini-ticket {
+  --tear: 5px;
+  display: grid;
+  gap: 8px;
+  width: 112px;
+  padding: 16px 14px;
+  background: var(--sheet);
+  box-shadow: 0 0 0 1px var(--line);
+  -webkit-mask: var(--zigzag);
+  mask: var(--zigzag);
+  rotate: -5deg;
+}
+
+.lot-mini-ticket i {
+  height: 6px;
+  background: radial-gradient(circle, var(--ink) 2.5px, transparent 3px) 0 50% / 13px 6px repeat-x;
+  opacity: 0.7;
+}
+
+/* Step 3: the line checked, matches in green */
+.lot-mini-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  --ball: 16px;
+}
+
+/* Manual entry: a play slip */
+.lot-manual {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  gap: 64px;
+  align-items: center;
+  margin-top: 112px;
+}
+
+.lot-manual-copy h3 {
+  font-family: var(--slab);
+  font-size: 36px;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+.lot-manual-copy p {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 22px;
+}
+
+.lot-slip {
+  position: relative;
+  padding: 28px 32px 32px 70px;
+  background: var(--sheet);
+  box-shadow:
+    0 0 0 1px rgba(220, 42, 51, 0.16),
+    0 30px 50px -34px rgba(70, 40, 0, 0.45);
+  color: var(--red);
+  rotate: 1.2deg;
+}
+
+/* Timing marks along the edge, like a real play slip. */
+.lot-slip::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  bottom: 32px;
+  left: 24px;
+  width: 16px;
+  background: repeating-linear-gradient(to bottom, var(--ink) 0 7px, transparent 7px 19px);
+}
+
+.lot-slip-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--red);
+}
+
+.lot-slip-top b {
+  font-family: var(--slab);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.lot-slip-top span {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lot-slip-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0 18px;
+}
+
+.lot-slip-form > div {
+  padding: 8px 12px 9px;
+  border: 1.5px solid rgba(220, 42, 51, 0.55);
+  border-radius: 3px;
+}
+
+.lot-slip-form dt {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lot-slip-form dd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lot-slip-form dd i {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  font-size: 15px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.lot-slip-grid {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.lot-slip-grid + .lot-slip-pb {
+  margin-top: 16px;
+}
+
+.lot-slip-pb {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding-top: 14px;
+  border-top: 1.5px dashed rgba(220, 42, 51, 0.45);
+}
+
+.lot-slip-pb > b {
+  padding-top: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.lot-slip-grid span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 28px;
+  border: 1.5px solid rgba(220, 42, 51, 0.5);
+  border-radius: 3px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  isolation: isolate;
+}
+
+.lot-slip-grid span > b {
+  font-weight: 600;
+  transition: color 0.2s ease;
+  transition-delay: var(--d, 0ms);
+}
+
+/* A pencil mark fills the box, stroke by stroke, once the slip is in view. */
+.lot-slip-grid span.is-marked::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  z-index: -1;
+  border-radius: 2px;
+  background: repeating-linear-gradient(-62deg, #24232d 0 2px, #3a3946 2px 3px);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.38s ease;
+  transition-delay: var(--d, 0ms);
+}
+
+.lot-manual[data-shown] .lot-slip-grid span.is-marked::after {
+  clip-path: inset(0);
+}
+
+.lot-manual[data-shown] .lot-slip-grid span.is-marked > b {
+  color: var(--paper);
+}
+
+/* ---------- Line B: draw night, on ink ---------- */
+
+.lot-draw {
+  padding-bottom: 0;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.lot-draw .lot-head {
+  border-color: rgba(251, 243, 224, 0.26);
+}
+
+.lot-draw .lot-head-tag,
+.lot-shots .lot-head-tag {
+  border-color: var(--gold);
+  color: var(--paper);
+}
+
+.lot-draw .lot-head-tag small,
+.lot-shots .lot-head-tag small {
+  color: var(--gold);
+}
+
+.lot-draw .lot-head-lead,
+.lot-shots .lot-head-lead {
+  color: rgba(251, 243, 224, 0.74);
+}
+
+.lot-draw-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 48px;
+  align-items: start;
+}
+
+/* The jackpot sign in the store window. */
+.lot-sign {
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.lot-sign-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 58px;
+  padding: 10px 36px;
+  background: var(--ink-2);
+  color: var(--paper);
+}
+
+.lot-sign-band b {
+  font-family: var(--slab);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.lot-sign-band span {
+  color: var(--gold);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.lot-sign-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'name jackpot'
+    'next jackpot'
+    'balls balls';
+  column-gap: 24px;
+  padding: 30px 36px 32px;
+}
+
+.lot-sign-row + .lot-sign-row {
+  border-top: 2px dashed var(--line-strong);
+}
+
+/* Notches where the sign's two tickets meet. */
+.lot-sign-row + .lot-sign-row::before,
+.lot-sign-row + .lot-sign-row::after {
+  content: '';
+  position: absolute;
+  top: -13px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.lot-sign-row + .lot-sign-row::before {
+  left: -12px;
+}
+
+.lot-sign-row + .lot-sign-row::after {
+  right: -12px;
+}
+
+.lot-sign-row h3 {
+  grid-area: name;
+  font-family: var(--slab);
+  font-size: 36px;
+  line-height: 1;
+}
+
+.lot-sign-powerball h3 {
+  color: var(--red);
+}
+
+.lot-sign-megaMillions h3 {
+  color: var(--blue);
+}
+
+.lot-sign-next {
+  grid-area: next;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 20px;
+}
+
+.lot-sign-next b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.lot-sign-jackpot {
+  grid-area: jackpot;
+  align-self: start;
+  text-align: right;
+}
+
+.lot-sign-jackpot small {
+  display: block;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lot-sign-jackpot strong {
+  display: block;
+  font-family: var(--slab);
+  font-size: clamp(56px, 7vw, 96px);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.lot-sign-balls {
+  grid-area: balls;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  --ball: 20px;
+}
+
+.lot-sign-balls > small {
+  width: 100%;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The draw's balls roll in from the left. */
+.lot-sign-balls .lot-ball {
+  font-family: var(--slab);
+  font-weight: 400;
+  transform: translateX(-260px) rotate(-420deg);
+  opacity: 0;
+  transition:
+    transform 1.15s var(--ease-out),
+    opacity 0.35s ease,
+    background-color 0.25s ease;
+  transition-delay: calc(var(--i, 0) * 90ms + 300ms);
+}
+
+.lot-sign[data-shown] .lot-sign-balls .lot-ball {
+  transform: none;
+  opacity: 1;
+}
+
+/* The receipt with past checks: thermal paper, torn at both ends. */
+.lot-receipt {
+  --tear: 8px;
+  padding: 36px 30px 34px;
+  background: var(--sheet);
+  color: var(--ink);
+  -webkit-mask: var(--zigzag);
+  mask: var(--zigzag);
+  rotate: 1.4deg;
+}
+
+.lot-receipt h3 {
+  font-family: var(--slab);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.lot-receipt-sub {
+  margin-top: 6px;
+  padding-bottom: 14px;
+  border-bottom: 2px dashed var(--line-strong);
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lot-receipt ul {
+  padding: 0;
+  list-style: none;
+}
+
+.lot-receipt li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px dashed var(--line-strong);
+}
+
+.lot-receipt li span {
+  display: grid;
+  min-width: 0;
+}
+
+.lot-receipt li b {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.lot-receipt li small {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.lot-receipt li em {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.lot-receipt li em.is-win {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.lot-receipt-more {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: var(--blue);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.lot-receipt .lot-barcode-block {
+  margin-top: 22px;
+  color: var(--ink);
+}
+
+.lot-receipt .lot-barcode-bars {
+  height: 34px;
+}
+
+/* The feature list printed on a red tape that runs across the edge into the next section. */
+.lot-tape {
+  position: relative;
+  z-index: 2;
+  margin: 120px -40px -34px;
+  overflow: hidden;
+  background: var(--red);
+  color: var(--paper);
+  rotate: -1.6deg;
+}
+
+.lot-tape ul {
+  display: flex;
+  width: max-content;
+  padding: 0;
+  list-style: none;
+  animation: lot-marquee 42s linear infinite;
+}
+
+.lot-tape li {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  height: 68px;
+  padding-right: 26px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lot-tape li::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+@keyframes lot-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- Line C: every ticket, printed in halftone ---------- */
+
+.lot-uses {
+  padding-top: 168px;
+}
+
+.lot-press {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.lot-press-lead,
+.lot-press-list {
+  border-top: 4px solid var(--ink);
+}
+
+.lot-press-lead {
+  padding-top: 22px;
+}
+
+.lot-press-lead .lot-ht {
+  aspect-ratio: 4 / 3;
+}
+
+.lot-press-lead h3 {
+  margin-top: 24px;
+  font-family: var(--slab);
+  font-size: 40px;
+  line-height: 1.04;
+}
+
+.lot-press-lead p {
+  max-width: 560px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 22px;
+}
+
+.lot-press-list {
+  display: grid;
+}
+
+.lot-press-item {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  padding: 22px 0;
+  border-bottom: 1.5px dashed var(--line-strong);
+}
+
+.lot-press-item .lot-ht {
+  aspect-ratio: 1;
+}
+
+.lot-press-item h3 {
+  font-family: var(--slab);
+  font-size: 25px;
+  line-height: 1.08;
+}
+
+.lot-press-item p {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+/* Halftone print: a blurred gray photo times a dot screen, thresholded by contrast, then inked. */
+.lot-ht {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--white);
+  isolation: isolate;
+  --ht-ink: var(--blue);
+}
+
+.lot-ht-print {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--white);
+  filter: brightness(0.7) contrast(30);
+}
+
+.lot-ht-print img,
+.lot-ht-color {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lot-ht-print img {
+  filter: grayscale(1) contrast(0.92) blur(0.6px);
+}
+
+/* Per-photo exposure, so each one prints with a full range of dots. */
+.lot-ht-phoneTicket .lot-ht-print img {
+  filter: grayscale(1) brightness(1.16) contrast(1.2) blur(0.6px);
+}
+
+.lot-ht-ticketPile .lot-ht-print img {
+  filter: grayscale(1) brightness(0.74) contrast(1.35) blur(0.6px);
+}
+
+.lot-ht-cornerStore .lot-ht-print img {
+  filter: grayscale(1) brightness(1.18) contrast(1.05) blur(0.6px);
+}
+
+.lot-ht-playSlip .lot-ht-print img {
+  filter: grayscale(1) brightness(1.05) contrast(1.1) blur(0.6px);
+}
+
+.lot-ht-print::after {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle, #000 0%, #fff 100%) 0 0 / var(--screen, 5px) var(--screen, 5px);
+  mix-blend-mode: screen;
+  rotate: 30deg;
+}
+
+.lot-ht-ink,
+.lot-ht-paper {
+  position: absolute;
+  inset: 0;
+}
+
+.lot-ht-ink {
+  background: var(--ht-ink);
+  mix-blend-mode: lighten;
+}
+
+.lot-ht-paper {
+  background:
+    radial-gradient(circle, rgba(31, 66, 207, 0.2) 0.9px, transparent 1.3px) 0 0 / 5px 5px,
+    var(--paper);
+  mix-blend-mode: multiply;
+}
+
+.lot-ht-color {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.75s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .lot-press-lead:hover .lot-ht-color,
+  .lot-press-item:hover .lot-ht-color {
+    clip-path: inset(0);
+  }
+}
+
+/* Without hover, the color photo scans in over the print once it has been seen. */
+@media (hover: none) {
+  .lot-press [data-shown] .lot-ht-color {
+    clip-path: inset(0);
+    transition: clip-path 1.4s var(--ease-out) 1.1s;
+  }
+}
+
+/* ---------- Line D: the real screens on a ticket roll ---------- */
+
+.lot-shots {
+  background: var(--felt);
+  color: var(--paper);
+}
+
+.lot-shots .lot-head {
+  border-color: rgba(251, 243, 224, 0.3);
+}
+
+.lot-roll {
+  --tear: 10px;
+  display: flex;
+  padding: 40px 0 34px;
+  overflow-x: auto;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-mask: var(--zigzag);
+  mask: var(--zigzag);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.lot-roll::-webkit-scrollbar {
+  display: none;
+}
+
+.lot-roll:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 6px;
+}
+
+.lot-roll-reveal[data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+/* The roll unspools from the left once it scrolls into view. */
+.lot-roll-reveal .lot-roll {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.4s var(--ease-out) 0.1s;
+}
+
+.lot-roll-reveal[data-shown] .lot-roll {
+  clip-path: inset(-2px -1% -2px 0);
+}
+
+.lot-frame {
+  flex: 1 0 0;
+  min-width: 190px;
+  padding: 0 22px;
+  scroll-snap-align: center;
+}
+
+.lot-frame + .lot-frame {
+  background: radial-gradient(circle, var(--line-strong) 1.7px, transparent 2.2px) 0 0 / 4px 10px repeat-y;
+}
+
+.lot-frame img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 300 / 649;
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: 0 0 0 1px var(--line);
+  object-fit: cover;
+}
+
+.lot-frame figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.lot-frame figcaption b {
+  color: var(--red);
+  font-family: var(--slab);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+/* ---------- Line E: questions, set as a printed rules sheet ---------- */
+
+.lot-rules {
+  padding: 60px 64px 56px;
+  background: var(--sheet);
+  box-shadow:
+    inset 0 0 0 12px var(--sheet),
+    inset 0 0 0 13.5px var(--red),
+    inset 0 0 0 17px var(--sheet),
+    inset 0 0 0 18.5px var(--red),
+    0 34px 60px -40px rgba(70, 40, 0, 0.45);
+}
+
+.lot-rules .lot-head {
+  margin-bottom: 40px;
+}
+
+.lot-rules-list {
+  columns: 2;
+  column-gap: 64px;
+  column-rule: 1.5px dashed var(--line-strong);
+  padding: 0;
+  list-style: none;
+}
+
+.lot-rules-list li {
+  break-inside: avoid;
+  padding-bottom: 30px;
+}
+
+.lot-rules-list h3 {
+  display: flex;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.lot-rules-list h3 span {
+  flex: none;
+  min-width: 26px;
+  color: var(--red);
+  font-family: var(--slab);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.lot-rules-list p {
+  margin-top: 6px;
+  padding-left: 38px;
+  color: var(--muted);
+}
+
+/* ---------- Final call: a scratch card ---------- */
+
+.lot-final {
+  position: relative;
+  padding: 128px 0;
+  background: var(--blue);
+  isolation: isolate;
+}
+
+.lot-final::before {
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: auto;
+  rotate: 180deg;
+}
+
+.lot-card-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  filter: drop-shadow(0 30px 34px rgba(6, 14, 64, 0.45));
+}
+
+.lot-card {
+  --n: 22px;
+  padding: 0 60px 40px;
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  rotate: -1.2deg;
+  -webkit-mask:
+    radial-gradient(circle at 0 50%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle at 0 50%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) right / 51% 100% no-repeat;
+}
+
+.lot-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 74px;
+  margin: 0 -60px 40px;
+  padding: 0 60px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.lot-card-top img {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+}
+
+.lot-card-top strong {
+  display: block;
+  font-family: var(--slab);
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.lot-card-top small {
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.lot-card-top > i {
+  margin-left: auto;
+  color: var(--gold);
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+
+.lot-card-title {
+  font-family: var(--slab);
+  font-size: clamp(44px, 6vw, 80px);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+}
+
+.lot-card-title span {
+  color: var(--red);
+}
+
+.lot-card-lead {
+  max-width: 520px;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 23px;
+}
+
+.lot-card-scratch {
+  margin-top: 34px;
+  padding: 8px;
+  border: 2px dashed rgba(220, 42, 51, 0.6);
+  border-radius: 10px;
+}
+
+.lot-scratch {
+  position: relative;
+}
+
+.lot-scratch-prize {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 30px 24px 26px;
+  border-radius: 5px;
+  background: var(--sheet);
+  text-align: center;
+}
+
+.lot-scratch-prize .lot-price {
+  justify-content: center;
+}
+
+.lot-scratch-prize .lot-price span {
+  text-align: center;
+}
+
+.lot-scratch-prize .lot-cta {
+  margin-top: 18px;
+}
+
+.lot-scratch-prize .lot-terms {
+  max-width: 420px;
+}
+
+.lot-scratch-latex {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  cursor: grab;
+  touch-action: pan-y;
+  transition:
+    opacity 0.6s ease,
+    visibility 0s linear 0.6s;
+}
+
+.lot-scratch.is-clear .lot-scratch-latex {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lot-card-fine {
+  margin-top: 22px;
+  color: rgba(27, 26, 36, 0.56);
+  font-size: 15px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* ---------- Footer ---------- */
+
+.lot-footer {
+  padding: 44px 0;
+  background: var(--ink);
+  color: rgba(251, 243, 224, 0.66);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.lot-footer-row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) auto;
+  gap: 40px;
+  align-items: start;
+}
+
+.lot-footer .lot-barcode-block {
+  color: var(--paper);
+}
+
+.lot-footer .lot-barcode-bars {
+  height: 38px;
+}
+
+.lot-footer nav {
+  display: flex;
+  gap: 22px;
+}
+
+.lot-footer a {
+  border-radius: 3px;
+  color: var(--paper);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.lot-footer a:hover {
+  color: var(--gold);
+}
+
+.lot-footer a:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 3px;
+}
+
+/* ---------- Dock: a ticket stub at the bottom of the phone ---------- */
+
+.lot-dock {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px calc(12px + env(safe-area-inset-bottom));
+  color: var(--ink);
+  filter: drop-shadow(0 -6px 18px rgba(14, 12, 30, 0.22));
+  transform: translateY(115%);
+  transition: transform 0.45s var(--ease-out);
+}
+
+.lot-dock::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle, rgba(27, 26, 36, 0.28) 1.4px, transparent 1.9px) 0 11px / 9px 4px repeat-x,
+    var(--paper);
+  -webkit-mask:
+    linear-gradient(#000 0 0) bottom / 100% calc(100% - 6px) no-repeat,
+    radial-gradient(circle at 50% 0, #0000 5px, #000 5.5px) top / 15px 7px repeat-x;
+  mask:
+    linear-gradient(#000 0 0) bottom / 100% calc(100% - 6px) no-repeat,
+    radial-gradient(circle at 50% 0, #0000 5px, #000 5.5px) top / 15px 7px repeat-x;
+}
+
+.lot-dock.is-visible {
+  transform: none;
+}
+
+.lot-dock img {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 11px;
+}
+
+.lot-dock-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.lot-dock-text strong {
+  font-family: var(--slab);
+  font-size: 23px;
+  font-weight: 400;
+}
+
+.lot-dock-text small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lot-dock-cta {
+  --n: 6px;
+  --depth: 4px;
+  min-height: 50px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.lot-dock-cta .lot-cta-face {
+  padding: 0 18px;
+  font-size: 19px;
+}
+
+/* ---------- Narrow desktop and tablet: the phone moves below the ticket ---------- */
+
+@media (max-width: 1120px) {
+  .lot {
+    --stub: 300px;
+  }
+
+  .lot-ticket-main {
+    padding: 0 40px 84px;
+  }
+
+  .lot-ticket-band {
+    margin-inline: -40px;
+    padding-inline: 40px;
+  }
+
+  .lot-ticket-serial {
+    display: none;
+  }
+
+  .lot-hero-lead {
+    max-width: 480px;
+  }
+
+  .lot-fields {
+    max-width: 500px;
+  }
+
+  .lot-ticket-stub {
+    padding-inline: 28px;
+  }
+
+  .lot-stub-band {
+    margin-inline: -28px;
+    padding-inline: 28px;
+  }
+
+  .lot-ticket-stub .lot-cta-face {
+    padding: 0 18px;
+    font-size: 20px;
+  }
+
+  .lot-price-regular strong {
+    font-size: 34px;
+  }
+
+  .lot-h1-line:first-child {
+    white-space: normal;
+  }
+
+  .lot-scan {
+    grid-area: 2 / 1;
+    justify-self: center;
+    width: 272px;
+    margin: -64px 0 0;
+  }
+
+  .lot-toast {
+    top: 120px;
+    left: auto;
+    right: calc(100% - 56px);
+  }
+
+  .lot-stamp {
+    align-self: end;
+    justify-self: start;
+    margin: 0 0 22px 34px;
+    font-size: 28px;
+  }
+
+  .lot-draw-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 32px;
+  }
+
+  .lot-sign-row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'name'
+      'next'
+      'jackpot'
+      'balls';
+  }
+
+  .lot-sign-jackpot {
+    margin-top: 18px;
+    text-align: left;
+  }
+}
+
+@media (max-width: 900px) {
+  .lot {
+    --gutter: 24px;
+  }
+
+  .lot-section,
+  .lot-final {
+    padding: 96px 0;
+  }
+
+  .lot-draw {
+    padding-bottom: 0;
+  }
+
+  .lot-uses {
+    padding-top: 140px;
+  }
+
+  .lot-head {
+    margin-bottom: 44px;
+  }
+
+  .lot-steps {
+    gap: 28px;
+  }
+
+  .lot-step-art {
+    height: 112px;
+  }
+
+  .lot-mini-finder {
+    width: 150px;
+  }
+
+  .lot-manual {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    margin-top: 88px;
+  }
+
+  .lot-receipt {
+    padding-inline: 24px;
+  }
+
+  .lot-press {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .lot-roll {
+    margin-inline: calc(var(--gutter) * -1);
+  }
+
+  .lot-frame {
+    flex: 0 0 auto;
+    width: 230px;
+  }
+
+  .lot-rules {
+    padding: 52px 44px 44px;
+  }
+
+  .lot-footer {
+    padding-bottom: calc(110px + env(safe-area-inset-bottom));
+  }
+
+  .lot-footer-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .lot-footer .lot-barcode-block {
+    grid-column: 1 / -1;
+    width: 170px;
+  }
+
+  .lot-dock {
+    display: flex;
+  }
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 860px) {
+  .lot-ticket-band span {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .lot {
+    --gutter: 16px;
+    --header-h: 60px;
+    font-size: 19px;
+  }
+
+  .lot-draw-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 44px;
+  }
+
+  .lot-stamp {
+    display: none;
+  }
+
+  .lot-identity img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .lot-identity strong {
+    font-size: 19px;
+  }
+
+  .lot-identity small {
+    font-size: 14px;
+  }
+
+  .lot-header-cta {
+    min-height: 40px;
+  }
+
+  .lot-header-cta .lot-cta-face {
+    gap: 8px;
+    padding: 0 14px;
+    font-size: 17px;
+  }
+
+  .lot-hero {
+    padding: calc(var(--header-h) + 8px) 0 56px;
+  }
+
+  .lot-ticket {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lot-ticket-main,
+  .lot-ticket-stub {
+    --n: 14px;
+  }
+
+  .lot-ticket-main {
+    padding: 0 22px 24px;
+    border-radius: 6px 6px 0 0;
+    -webkit-mask:
+      radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) left / 51% 100% no-repeat,
+      radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) right / 51% 100% no-repeat;
+    mask:
+      radial-gradient(circle at 0 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) left / 51% 100% no-repeat,
+      radial-gradient(circle at 100% 100%, #0000 var(--n), #000 calc(var(--n) + 0.5px)) right / 51% 100% no-repeat;
+  }
+
+  .lot-ticket-stub {
+    padding: 24px 22px 96px;
+    border-radius: 0 0 6px 6px;
+    -webkit-mask:
+      radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) left / 51% 100% no-repeat,
+      radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) right / 51% 100% no-repeat;
+    mask:
+      radial-gradient(circle at 0 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) left / 51% 100% no-repeat,
+      radial-gradient(circle at 100% 0, #0000 var(--n), #000 calc(var(--n) + 0.5px)) right / 51% 100% no-repeat;
+  }
+
+  .lot-ticket-stub::before {
+    top: -2px;
+    right: calc(var(--n) + 6px);
+    bottom: auto;
+    left: calc(var(--n) + 6px);
+    width: auto;
+    height: 5px;
+    background: radial-gradient(circle, rgba(27, 26, 36, 0.4) 1.8px, transparent 2.3px) 0 0 / 10px 5px repeat-x;
+  }
+
+  .lot-stub-band {
+    display: none;
+  }
+
+  .lot-ticket-band {
+    height: 46px;
+    margin: 0 -22px 20px;
+    padding: 0 22px;
+  }
+
+  .lot-ticket-band b {
+    font-size: 19px;
+  }
+
+  .lot-ticket-band span {
+    font-size: 15px;
+  }
+
+  .lot-h1 {
+    font-size: clamp(36px, 11.8vw, 56px);
+  }
+
+  .lot-hero-lead {
+    margin-top: 14px;
+    font-size: 19px;
+    line-height: 1.3;
+  }
+
+  .lot-fields {
+    margin-top: 18px;
+  }
+
+  .lot-fields > div {
+    padding-right: 12px;
+    margin-right: 12px;
+  }
+
+  .lot-fields dt {
+    font-size: 13px;
+  }
+
+  .lot-fields dd {
+    font-size: 17px;
+  }
+
+  .lot-ticket-serial {
+    display: none;
+  }
+
+  .lot-price strong {
+    font-size: 46px;
+  }
+
+  .lot-price-regular strong {
+    font-size: 34px;
+  }
+
+  .lot-ticket-stub {
+    padding-top: 20px;
+  }
+
+  .lot-ticket-stub .lot-cta {
+    margin-top: 16px;
+  }
+
+  .lot-stub-code {
+    display: none;
+  }
+
+  .lot-scan {
+    width: min(262px, 76vw);
+    margin-top: -72px;
+  }
+
+  .lot-toast {
+    top: 64px;
+    right: auto;
+    left: 50%;
+    width: min(300px, calc(100vw - 32px));
+    translate: -50% 0;
+  }
+
+  .lot-stamp {
+    margin: 0 0 0 calc(min(262px, 76vw) * -1 - 10px);
+    align-self: start;
+    justify-self: center;
+    margin-top: -44px;
+    font-size: 24px;
+    rotate: -14deg;
+  }
+
+  .lot-section,
+  .lot-final {
+    padding: 76px 0;
+  }
+
+  .lot-draw {
+    padding-bottom: 0;
+  }
+
+  .lot-uses {
+    padding-top: 120px;
+  }
+
+  .lot-head {
+    column-gap: 16px;
+    padding-bottom: 22px;
+    margin-bottom: 34px;
+  }
+
+  .lot-head-tag {
+    width: 58px;
+    height: 58px;
+  }
+
+  .lot-head-tag small {
+    font-size: 13px;
+  }
+
+  .lot-head-tag b {
+    font-size: 28px;
+  }
+
+  .lot-head-text {
+    padding-top: 2px;
+  }
+
+  .lot-h2 {
+    font-size: clamp(28px, 8.4vw, 38px);
+  }
+
+  .lot-head-lead {
+    grid-column: 1 / -1;
+    font-size: 19px;
+  }
+
+  .lot-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .lot-steps::before {
+    top: 0;
+    bottom: 0;
+    left: 27px;
+    right: auto;
+    width: 4px;
+    height: auto;
+    background: radial-gradient(circle, var(--line-strong) 1.7px, transparent 2.2px) 0 0 / 4px 11px repeat-y;
+  }
+
+  .lot-step {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    column-gap: 18px;
+    padding-bottom: 34px;
+  }
+
+  .lot-step:last-child {
+    padding-bottom: 0;
+  }
+
+  .lot-step-ball {
+    --ball: 29px;
+    grid-row: 1 / span 3;
+    transform: translateY(-80px) rotate(-280deg);
+  }
+
+  .lot-step-art {
+    grid-column: 2;
+    height: auto;
+    min-height: 0;
+    margin: 4px 0 14px;
+  }
+
+  .lot-step h3,
+  .lot-step p {
+    grid-column: 2;
+  }
+
+  .lot-step h3 {
+    font-size: 24px;
+  }
+
+  .lot-mini-scan {
+    height: 50px;
+    font-size: 19px;
+  }
+
+  .lot-mini-finder {
+    width: 140px;
+    height: 100px;
+  }
+
+  .lot-mini-ticket {
+    width: 96px;
+    padding: 13px 12px;
+  }
+
+  .lot-manual {
+    margin-top: 64px;
+  }
+
+  .lot-manual-copy h3 {
+    font-size: 30px;
+  }
+
+  .lot-manual-copy p {
+    font-size: 19px;
+  }
+
+  .lot-slip {
+    padding: 20px 16px 22px 40px;
+    rotate: 0.6deg;
+  }
+
+  .lot-slip::before {
+    top: 20px;
+    bottom: 22px;
+    left: 14px;
+    width: 12px;
+  }
+
+  .lot-slip-top b {
+    font-size: 24px;
+  }
+
+  .lot-slip-top span {
+    font-size: 13px;
+  }
+
+  .lot-slip-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .lot-slip-form > div {
+    padding: 6px 10px 7px;
+  }
+
+  .lot-slip-form > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .lot-slip-form dt {
+    font-size: 12px;
+  }
+
+  .lot-slip-form dd {
+    font-size: 17px;
+  }
+
+  .lot-slip-grid {
+    gap: 3px;
+  }
+
+  .lot-slip-grid span {
+    height: 24px;
+    border-width: 1px;
+    font-size: 13px;
+  }
+
+  .lot-slip-pb {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .lot-sign-band {
+    padding: 10px 20px;
+  }
+
+  .lot-sign-band b {
+    font-size: 19px;
+  }
+
+  .lot-sign-band span {
+    font-size: 15px;
+  }
+
+  .lot-sign-row {
+    padding: 24px 20px 26px;
+  }
+
+  .lot-sign-row h3 {
+    font-size: 30px;
+  }
+
+  .lot-sign-next {
+    font-size: 18px;
+  }
+
+  .lot-sign-jackpot strong {
+    font-size: clamp(52px, 17vw, 72px);
+  }
+
+  .lot-sign-balls {
+    gap: 6px;
+    --ball: clamp(14px, 4.6vw, 18px);
+  }
+
+  .lot-receipt {
+    max-width: none;
+    padding: 30px 22px 28px;
+  }
+
+  .lot-tape {
+    margin-top: 80px;
+  }
+
+  .lot-tape li {
+    height: 56px;
+    gap: 18px;
+    padding-right: 18px;
+    font-size: 20px;
+  }
+
+  .lot-press-lead h3 {
+    font-size: 30px;
+  }
+
+  .lot-press-lead p {
+    font-size: 19px;
+  }
+
+  .lot-press-item {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 16px;
+    padding: 18px 0;
+  }
+
+  .lot-press-item h3 {
+    font-size: 21px;
+  }
+
+  .lot-press-item p {
+    font-size: 17px;
+  }
+
+  .lot-frame {
+    width: 62vw;
+    max-width: 240px;
+    padding: 0 16px;
+  }
+
+  .lot-frame figcaption {
+    font-size: 18px;
+  }
+
+  .lot-rules {
+    padding: 40px 24px 30px;
+    box-shadow:
+      inset 0 0 0 8px var(--sheet),
+      inset 0 0 0 9.5px var(--red),
+      inset 0 0 0 12px var(--sheet),
+      inset 0 0 0 13.5px var(--red),
+      0 34px 60px -40px rgba(70, 40, 0, 0.45);
+  }
+
+  .lot-rules-list {
+    columns: 1;
+  }
+
+  .lot-rules-list li {
+    padding-bottom: 24px;
+  }
+
+  .lot-rules-list h3 {
+    gap: 8px;
+    font-size: 21px;
+  }
+
+  .lot-rules-list h3 span {
+    min-width: 20px;
+    font-size: 19px;
+  }
+
+  .lot-rules-list p {
+    padding-left: 28px;
+    font-size: 18px;
+  }
+
+  .lot-card {
+    --n: 16px;
+    padding: 0 24px 26px;
+    rotate: -0.8deg;
+  }
+
+  .lot-card-top {
+    min-height: 62px;
+    margin: 0 -24px 28px;
+    padding: 0 24px;
+  }
+
+  .lot-card-top img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .lot-card-top strong {
+    font-size: 19px;
+  }
+
+  .lot-card-top > i {
+    display: none;
+  }
+
+  .lot-card-lead {
+    font-size: 19px;
+  }
+
+  .lot-card-scratch {
+    margin-top: 26px;
+    padding: 6px;
+  }
+
+  .lot-scratch-prize {
+    padding: 24px 14px 20px;
+  }
+
+  .lot-scratch-prize .lot-cta {
+    width: 100%;
+  }
+
+  .lot-footer {
+    font-size: 15px;
+  }
+
+  .lot-footer-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .lot-footer .lot-barcode-block {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .lot-header-cta .lot-cta-long,
+  .lot-ticket-band span {
+    display: none;
+  }
+
+  .lot-header-cta .lot-cta-short {
+    display: inline;
+  }
+}
+
+@media (max-width: 380px) {
+  .lot-identity small {
+    display: none;
+  }
+
+  .lot-dock-cta .lot-cta-long {
+    display: none;
+  }
+
+  .lot-dock-cta .lot-cta-short {
+    display: inline;
+  }
+
+  .lot-ticket-stub .lot-cta-face,
+  .lot-scratch-prize .lot-cta-face {
+    padding: 0 16px;
+    font-size: 20px;
+  }
+
+  .lot-fields {
+    display: grid;
+    border-top-width: 2px;
+  }
+
+  .lot-fields > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 0;
+    margin: 0;
+    border-right: 0;
+    border-bottom: 1.5px dashed var(--line-strong);
+  }
+
+  .lot-dock {
+    gap: 10px;
+    padding-inline: 12px;
+  }
+
+  .lot-dock img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .lot-dock-text strong {
+    font-size: 20px;
+  }
+
+  .lot-dock-cta .lot-cta-face {
+    padding: 0 12px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 330px) {
+  .lot-ribbon {
+    font-size: 15px;
+  }
+
+  /* The hero button is in view here, and the dock takes over below it. */
+  .lot-header-cta {
+    display: none;
+  }
+
+  .lot-identity {
+    gap: 8px;
+  }
+
+  .lot-identity strong {
+    font-size: 17px;
+  }
+
+  .lot-ticket-band span {
+    display: none;
+  }
+
+  .lot-ticket-main,
+  .lot-ticket-stub {
+    padding-inline: 16px;
+  }
+
+  .lot-ticket-band {
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+
+  .lot-h1 {
+    font-size: 34px;
+  }
+
+  .lot-price strong {
+    font-size: 42px;
+  }
+
+  .lot-price-regular strong {
+    font-size: 28px;
+  }
+
+  .lot-ticket-stub .lot-cta-face,
+  .lot-scratch-prize .lot-cta-face {
+    gap: 8px;
+    padding: 0 12px;
+    font-size: 18px;
+  }
+
+  .lot-dock-text small {
+    display: none;
+  }
+
+  .lot-sign-jackpot strong {
+    font-size: 46px;
+  }
+
+  .lot-slip {
+    padding-left: 32px;
+  }
+
+  .lot-slip::before {
+    left: 10px;
+    width: 10px;
+  }
+
+  .lot-slip-grid span {
+    font-size: 11px;
+  }
+
+  .lot-card {
+    padding-inline: 16px;
+  }
+
+  .lot-card-top {
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+}
+
+/* No motion: everything printed in its final place. */
+@media (prefers-reduced-motion: reduce) {
+  .lot *,
+  .lot *::before,
+  .lot *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .lot-scratch-word > i {
+    display: none;
+  }
+
+  .lot-head-tag,
+  .lot-step-ball,
+  .lot-sign-balls .lot-ball {
+    transform: none;
+    opacity: 1;
+  }
+
+  .lot-roll-reveal .lot-roll {
+    clip-path: none;
+  }
+
+  .lot-slip-grid span.is-marked::after {
+    clip-path: inset(0);
+  }
+
+  .lot-slip-grid span.is-marked > b {
+    color: var(--paper);
+  }
+
+  .lot-tape ul {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+    padding: 6px 24px;
+  }
+
+  .lot-tape li[aria-hidden='true'] {
+    display: none;
+  }
+}

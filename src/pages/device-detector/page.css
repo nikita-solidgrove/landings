@@ -1,0 +1,2933 @@
+/*
+ * Device Detector: a calm night check. An instrument at night (radar sweep, readouts, channel
+ * displays) in Martian Mono, alternating with warm linen sections where the room is already checked.
+ * Violet from the app's UI for keys and the sweep, red only for "unknown", green only for "checked".
+ */
+.dd {
+  --night: #15121e;
+  --night-deep: #0e0c15;
+  --panel: #1c1928;
+  --screen: #0b0a11;
+  --line-dark: rgba(243, 238, 229, 0.1);
+  --line-dark-strong: rgba(243, 238, 229, 0.2);
+  --on-dark: #f3eee5;
+  --on-dark-muted: rgba(243, 238, 229, 0.66);
+  --on-dark-faint: rgba(243, 238, 229, 0.42);
+  --linen: #f3eee5;
+  --linen-deep: #e6ddcd;
+  --ink: #15121e;
+  --ink-muted: #5f5869;
+  --line-light: rgba(21, 18, 30, 0.14);
+  --violet: #6a5cff;
+  --violet-hover: #7a6dff;
+  --violet-press: #5445ea;
+  --violet-soft: #a39bff;
+  --red: #ff2d4f;
+  --red-soft: #ff8597;
+  --green: #2fd28a;
+  --mono: 'Martian Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  --sans: 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ease: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --gutter: 32px;
+  --header-h: 64px;
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--night);
+  color: var(--on-dark);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.dd *,
+.dd *::before,
+.dd *::after {
+  box-sizing: border-box;
+}
+
+/* Resets without specificity, so component classes always win. */
+:where(.dd) :where(h1, h2, h3, p, ol, ul, dl, dd, figure) {
+  margin: 0;
+}
+
+:where(.dd) :where(ol, ul) {
+  padding: 0;
+  list-style: none;
+}
+
+:where(.dd) :where(button) {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:where(.dd) :where(a) {
+  color: inherit;
+}
+
+:where(.dd) :where(img) {
+  display: block;
+}
+
+.dd-wrap {
+  width: 100%;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---------- Motion primitives ---------- */
+
+.dd-intro {
+  animation: dd-rise 0.9s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 110ms + 120ms);
+}
+
+@keyframes dd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes dd-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dd-spin {
+  from {
+    rotate: 0deg;
+  }
+
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes dd-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes dd-pulse-led {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ---------- Shared pieces: LED, keys, scale, channel readout ---------- */
+
+.dd-led {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--on-dark-faint);
+  transition: background-color 0.4s ease;
+}
+
+.dd-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 0 24px 0 26px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--violet);
+  color: #ffffff;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: inset 0 -2px 0 rgba(11, 10, 17, 0.22);
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.dd-key-arrow {
+  font-size: 18px;
+  font-weight: 400;
+  transition: translate 0.35s var(--ease);
+}
+
+.dd-key:hover {
+  background: var(--violet-hover);
+}
+
+.dd-key:hover .dd-key-arrow {
+  translate: 4px 0;
+}
+
+.dd-key:active {
+  background: var(--violet-press);
+  box-shadow: none;
+  transform: translateY(1px);
+}
+
+.dd-key:focus-visible {
+  outline: 2px solid var(--violet-soft);
+  outline-offset: 3px;
+}
+
+.dd-key-small {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* A ruler: a tick every 8px, a long one every 80px, on a baseline. */
+.dd-scale {
+  display: block;
+  height: 12px;
+  color: var(--on-dark);
+  opacity: 0.2;
+  background:
+    linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px 80px) left bottom / 100% 12px no-repeat,
+    repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px 8px) left bottom / 100% 5px no-repeat;
+}
+
+/*
+ * Section headings: a channel readout runs in before the heading, like the display of an
+ * instrument. Its LED turns green and its signal bars rise when the heading comes into view.
+ */
+.dd-h2 {
+  font-family: var(--mono);
+  font-size: clamp(28px, 3.3vw, 46px);
+  font-stretch: 87.5%;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.14;
+  text-wrap: pretty;
+}
+
+.dd-ch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  margin-right: 0.5em;
+  padding: 0 10px;
+  border: 1px solid var(--line-dark-strong);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--on-dark-faint);
+  font-size: 12px;
+  font-stretch: 100%;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: calc(0.36em - 4px);
+}
+
+.dd-ch-name {
+  color: var(--on-dark);
+}
+
+.dd-ch-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+  color: var(--green);
+}
+
+.dd-ch-bars i {
+  width: 3px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: scaleY(0.25);
+  transform-origin: bottom;
+  opacity: 0.4;
+  transition:
+    transform 0.5s var(--ease),
+    opacity 0.5s ease;
+}
+
+.dd-ch-bars i:nth-child(1) {
+  height: 4px;
+}
+
+.dd-ch-bars i:nth-child(2) {
+  height: 6px;
+  transition-delay: 0.12s;
+}
+
+.dd-ch-bars i:nth-child(3) {
+  height: 9px;
+  transition-delay: 0.24s;
+}
+
+.dd-ch-bars i:nth-child(4) {
+  height: 12px;
+  transition-delay: 0.36s;
+}
+
+[data-shown] .dd-ch-bars i {
+  opacity: 1;
+  transform: none;
+}
+
+[data-shown] .dd-ch .dd-led {
+  background: var(--green);
+  transition-delay: 0.5s;
+}
+
+.dd-head {
+  max-width: 920px;
+  margin-bottom: 56px;
+}
+
+.dd-sub {
+  max-width: 580px;
+  margin-top: 20px;
+  color: var(--on-dark-muted);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.dd-terms {
+  margin-top: 14px;
+  color: var(--on-dark-faint);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Corner ticks over a picture or a display, like the brackets of a viewfinder. */
+.dd-frame,
+.dd-mod-screen {
+  --tick: rgba(243, 238, 229, 0.55);
+}
+
+.dd-frame::after,
+.dd-mod-screen::after {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--tick), var(--tick)) left top / 12px 1.5px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left top / 1.5px 12px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right top / 12px 1.5px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right top / 1.5px 12px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left bottom / 12px 1.5px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) left bottom / 1.5px 12px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right bottom / 12px 1.5px no-repeat,
+    linear-gradient(var(--tick), var(--tick)) right bottom / 1.5px 12px no-repeat;
+}
+
+/* ---------- Creator ribbon ---------- */
+
+.dd-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line-dark);
+  background: var(--night-deep);
+  color: var(--on-dark);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.dd-ribbon p {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--on-dark-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dd-ribbon strong {
+  color: var(--on-dark);
+  font-weight: 600;
+}
+
+.dd-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--violet);
+  color: #ffffff;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  object-fit: cover;
+}
+
+.dd-ribbon-deal {
+  flex-shrink: 0;
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---------- Header: a status bar ---------- */
+
+/*
+ * Sticky, laid over the hero. The blur zone reaches past the bar so content fades into it. The
+ * header itself stays free of filter/opacity/backdrop-filter.
+ */
+.dd-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  margin-bottom: calc(var(--header-h) * -1);
+  color: var(--ink);
+  transition: color 0.35s ease;
+}
+
+.dd-header[data-tone='dark'] {
+  color: var(--on-dark);
+}
+
+.dd-header-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100% + 40px);
+  pointer-events: none;
+}
+
+.dd-header-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.dd-header-tint-light {
+  background: linear-gradient(
+    to bottom,
+    rgba(243, 238, 229, 0.94) 0%,
+    rgba(243, 238, 229, 0.64) 50%,
+    rgba(243, 238, 229, 0) 100%
+  );
+}
+
+.dd-header-tint-dark {
+  background: linear-gradient(
+    to bottom,
+    rgba(21, 18, 30, 0.9) 0%,
+    rgba(21, 18, 30, 0.58) 50%,
+    rgba(21, 18, 30, 0) 100%
+  );
+}
+
+.dd-header[data-stuck='true'][data-tone='light'] .dd-header-tint-light,
+.dd-header[data-stuck='true'][data-tone='dark'] .dd-header-tint-dark {
+  opacity: 1;
+}
+
+.dd-header-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: var(--header-h);
+}
+
+.dd-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dd-brand img {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+
+.dd-brand:focus-visible,
+.dd-footer a:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--violet-soft);
+  outline-offset: 4px;
+}
+
+.dd-status {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0.86;
+  translate: -50% -50%;
+}
+
+.dd-status .dd-led {
+  background: var(--violet-soft);
+  animation: dd-pulse-led 2.4s ease-in-out infinite;
+}
+
+.dd-header[data-tone='light'] .dd-status .dd-led {
+  background: var(--violet);
+}
+
+.dd-status[data-state='done'] .dd-led,
+.dd-header[data-tone='light'] .dd-status[data-state='done'] .dd-led {
+  background: var(--green);
+  animation: none;
+}
+
+.dd-header-key {
+  margin-left: auto;
+}
+
+/* ---------- Hero ---------- */
+
+.dd-hero {
+  position: relative;
+  padding: calc(var(--header-h) + 48px) 0 88px;
+  overflow: clip;
+  background: var(--night);
+}
+
+.dd-hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 432px) minmax(0, 1fr);
+  align-items: center;
+  gap: 48px;
+}
+
+.dd-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.dd-h1 {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--mono);
+  font-size: clamp(44px, 4.6vw, 66px);
+  font-stretch: 87.5%;
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.04;
+}
+
+.dd-h1 > span {
+  animation: dd-rise 0.9s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 110ms + 60ms);
+}
+
+/* The calm half of the line: the same voice, lighter. */
+.dd-h1 > span:last-child {
+  margin-top: 0.08em;
+  font-weight: 300;
+}
+
+.dd-lead {
+  max-width: 420px;
+  margin-top: 26px;
+  color: var(--on-dark-muted);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.dd-offer {
+  margin-top: 30px;
+}
+
+.dd-price {
+  margin-bottom: 14px;
+  color: var(--on-dark-faint);
+  font-size: 14px;
+}
+
+.dd-price strong {
+  color: var(--on-dark);
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.dd-price s {
+  margin: 0 4px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+/* Proof points as an instrument's readout: key above, value below, ruled cells. */
+.dd-spec {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  margin-top: 34px;
+  padding-top: 14px;
+  background: repeating-linear-gradient(to right, var(--line-dark-strong) 0 1px, transparent 1px 6px) left top / 100% 1px
+    no-repeat;
+}
+
+.dd-spec > div {
+  padding: 0 22px;
+  border-left: 1px solid var(--line-dark);
+}
+
+.dd-spec > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.dd-spec dt {
+  color: var(--on-dark-faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.dd-spec dd {
+  margin-top: 4px;
+  color: var(--on-dark);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dd-hero-stage {
+  position: relative;
+  min-width: 0;
+}
+
+/* ---------- The room scope (centerpiece) ---------- */
+
+.dd-scope {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 188px;
+  grid-template-areas:
+    'dial side'
+    'note note';
+  align-items: center;
+  column-gap: 24px;
+}
+
+.dd-dial {
+  position: relative;
+  grid-area: dial;
+  justify-self: end;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+}
+
+/* Faint rings radiating from the scope across the whole hero. */
+.dd-dial-field {
+  position: absolute;
+  inset: -100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dd-dial-field::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: repeating-linear-gradient(to right, rgba(243, 238, 229, 0.08) 0 2px, transparent 2px 7px);
+}
+
+.dd-dial-field i {
+  position: absolute;
+  border: 1px solid rgba(243, 238, 229, 0.07);
+  border-radius: 50%;
+  animation: dd-breathe 9s ease-in-out infinite alternate;
+}
+
+.dd-dial-field i:nth-child(1) {
+  inset: 29.2%;
+}
+
+.dd-dial-field i:nth-child(2) {
+  inset: 23.3%;
+  border-color: rgba(243, 238, 229, 0.055);
+  animation-delay: -3s;
+}
+
+.dd-dial-field i:nth-child(3) {
+  inset: 15%;
+  border-color: rgba(243, 238, 229, 0.045);
+  animation-delay: -6s;
+}
+
+.dd-dial-field i:nth-child(4) {
+  inset: 3.3%;
+  border-color: rgba(243, 238, 229, 0.035);
+  animation-delay: -1.5s;
+}
+
+@keyframes dd-breathe {
+  to {
+    scale: 1.025;
+  }
+}
+
+.dd-dial-scale {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dd-dial-scale line {
+  stroke: rgba(243, 238, 229, 0.26);
+  stroke-width: 1.5;
+}
+
+.dd-dial-scale line.is-mid {
+  stroke: rgba(243, 238, 229, 0.55);
+}
+
+.dd-dial-scale line.is-major {
+  stroke: var(--violet-soft);
+  stroke-width: 2.5;
+}
+
+.dd-dial-rim {
+  fill: none;
+  stroke: rgba(243, 238, 229, 0.16);
+  stroke-width: 1.5;
+}
+
+/* The green ring that closes once the room is checked. */
+.dd-dial-done {
+  fill: none;
+  stroke: var(--green);
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  stroke-linecap: round;
+  stroke-width: 4;
+  transform: rotate(-90deg);
+  transform-origin: 200px 200px;
+}
+
+.dd-scope[data-phase='relax'] .dd-dial-done {
+  animation: dd-close 1.6s var(--ease) 0.25s both;
+}
+
+@keyframes dd-close {
+  from {
+    stroke-dashoffset: 100;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.dd-face {
+  position: absolute;
+  inset: 7.5%;
+  z-index: 2;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 50%;
+  background: var(--screen);
+}
+
+.dd-face > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.3) brightness(0.62) contrast(1.06);
+  transition: filter 1.4s ease;
+}
+
+.dd-face-night {
+  position: absolute;
+  inset: 0;
+  background: #2e2670;
+  mix-blend-mode: multiply;
+  opacity: 0.72;
+  transition: opacity 1.4s ease;
+}
+
+.dd-scope[data-phase='relax'] .dd-face > img {
+  filter: saturate(1.06) brightness(1.02);
+}
+
+.dd-scope[data-phase='relax'] .dd-face-night {
+  opacity: 0;
+}
+
+.dd-face-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transition: opacity 1.2s ease;
+}
+
+.dd-face-grid circle,
+.dd-face-grid line {
+  fill: none;
+  stroke: rgba(243, 238, 229, 0.24);
+  stroke-dasharray: 2 5;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.dd-face-grid .dd-step {
+  fill: rgba(243, 238, 229, 0.22);
+  stroke: none;
+  transition: fill 0.25s ease;
+}
+
+.dd-face-grid .dd-step.is-on {
+  fill: var(--on-dark);
+}
+
+.dd-scope[data-phase='relax'] .dd-face-grid circle:not(.dd-step),
+.dd-scope[data-phase='relax'] .dd-face-grid line {
+  stroke: rgba(255, 255, 255, 0.35);
+}
+
+/* The sweep: a flat wedge trailing the leading line. */
+.dd-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(106, 92, 255, 0) 0deg,
+    rgba(106, 92, 255, 0) 280deg,
+    rgba(163, 155, 255, 0.36) 360deg
+  );
+  animation:
+    dd-spin 3.6s linear infinite,
+    dd-fade 0.6s ease both;
+}
+
+.dd-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(50% - 0.75px);
+  width: 1.5px;
+  height: 50%;
+  background: var(--violet-soft);
+}
+
+.dd-scope[data-paused] .dd-sweep,
+.dd-scope[data-paused] .dd-blip > i::after {
+  animation-play-state: paused;
+}
+
+.dd-blip {
+  position: absolute;
+  z-index: 2;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.dd-blip.is-seen {
+  opacity: 1;
+}
+
+.dd-blip > i {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--on-dark);
+  color: var(--on-dark);
+  box-shadow: 0 0 0 3px rgba(14, 12, 21, 0.5);
+  transition: background-color 0.5s ease;
+}
+
+/* Each blip pings when the sweep passes over it. */
+.dd-blip > i::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  animation: dd-ping 3.6s linear infinite;
+  animation-delay: var(--ping, 0ms);
+}
+
+@keyframes dd-ping {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.35);
+  }
+
+  26% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.dd-blip > b,
+.dd-you > b {
+  position: absolute;
+  top: 0;
+  left: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  border: 1px solid rgba(243, 238, 229, 0.14);
+  border-radius: 6px;
+  background: rgba(14, 12, 21, 0.84);
+  color: var(--on-dark);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  translate: 0 -50%;
+  transition:
+    color 0.4s ease,
+    border-color 0.4s ease;
+}
+
+.dd-blip.is-left > b {
+  right: 13px;
+  left: auto;
+}
+
+.dd-blip > b em {
+  color: var(--red);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.dd-blip.is-headphones > i {
+  background: var(--violet-soft);
+  color: var(--violet-soft);
+}
+
+.dd-blip.is-unknown > i {
+  background: var(--red);
+  color: var(--red);
+}
+
+.dd-blip.is-unknown > b {
+  border-color: rgba(255, 45, 79, 0.55);
+  color: var(--red-soft);
+}
+
+.dd-scope[data-phase='closer'] .dd-blip:not(.is-unknown) {
+  opacity: 0.3;
+}
+
+.dd-scope[data-phase='relax'] .dd-blip.is-unknown > i {
+  background: var(--green);
+  color: var(--green);
+}
+
+.dd-scope[data-phase='relax'] .dd-blip.is-unknown > b {
+  border-color: rgba(47, 210, 138, 0.6);
+  color: var(--on-dark);
+}
+
+.dd-target {
+  position: absolute;
+  z-index: 1;
+  width: 0;
+  height: 0;
+}
+
+.dd-target i {
+  position: absolute;
+  top: -34px;
+  left: -34px;
+  width: 68px;
+  height: 68px;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  opacity: calc(0.25 + var(--heat, 0) * 0.75);
+  animation: dd-target 1.8s ease-out infinite;
+}
+
+.dd-target i:nth-child(2) {
+  animation-delay: 0.9s;
+}
+
+.dd-scope[data-phase='relax'] .dd-target i {
+  border-color: var(--green);
+  animation-fill-mode: forwards;
+  animation-iteration-count: 2;
+}
+
+@keyframes dd-target {
+  from {
+    transform: scale(0.3);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+.dd-you {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2.5px solid var(--violet);
+  border-radius: 50%;
+  background: var(--on-dark);
+  color: var(--night);
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.6);
+  translate: -50% -50%;
+  transition: border-color 0.5s ease;
+}
+
+.dd-you > b {
+  top: calc(100% + 16px);
+  left: 50%;
+  opacity: 0;
+  translate: -50% -50%;
+  transition: opacity 0.35s ease;
+}
+
+.dd-you.is-tagged > b {
+  opacity: 1;
+}
+
+.dd-scope[data-phase='relax'] .dd-you {
+  border-color: var(--green);
+}
+
+/* iOS-style notification when the room is checked. */
+.dd-toast {
+  position: absolute;
+  top: 2%;
+  right: -3%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(296px, 80%);
+  padding: 10px 14px 10px 10px;
+  border-radius: 18px;
+  background: rgba(250, 248, 244, 0.97);
+  color: var(--ink);
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  animation: dd-toast 4.4s var(--ease) 0.9s both;
+}
+
+.dd-toast img {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 9px;
+}
+
+.dd-toast span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.dd-toast small {
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dd-toast small:first-child {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dd-toast strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@keyframes dd-toast {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+
+  10%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* Readouts beside the dial: one channel per step, and the message line. */
+.dd-scope-side {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  grid-area: side;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dd-readouts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dd-ro {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  overflow: hidden;
+  border: 1px solid var(--line-dark);
+  border-radius: 12px;
+  background: rgba(28, 25, 40, 0.7);
+  color: var(--on-dark-muted);
+  text-align: left;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.dd-ro:hover {
+  border-color: var(--line-dark-strong);
+}
+
+.dd-ro:focus-visible {
+  outline: 2px solid var(--violet-soft);
+  outline-offset: 2px;
+}
+
+.dd-ro[aria-selected='true'] {
+  border-color: rgba(163, 155, 255, 0.5);
+  background: var(--panel);
+  color: var(--on-dark);
+}
+
+.dd-ro-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dd-ro-name {
+  overflow: hidden;
+  color: var(--on-dark-faint);
+  text-overflow: ellipsis;
+}
+
+.dd-ro[data-state='active'] .dd-led {
+  background: var(--violet-soft);
+  animation: dd-pulse-led 1.4s ease-in-out infinite;
+}
+
+.dd-ro[data-state='done'] .dd-led,
+.dd-scope[data-phase='relax'] .dd-ro[data-state='active'] .dd-led {
+  background: var(--green);
+  animation: none;
+}
+
+.dd-ro-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--on-dark);
+  font-family: var(--mono);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.dd-ro-value small {
+  color: var(--on-dark-faint);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.dd-ro[data-state='idle'] .dd-ro-value {
+  color: var(--on-dark-faint);
+}
+
+.dd-scope[data-phase='relax'] .dd-ro[data-state='active'] .dd-ro-value {
+  color: var(--green);
+}
+
+.dd-ro-sub {
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.dd-ro-flag {
+  color: var(--red-soft);
+  font-weight: 600;
+}
+
+.dd-ro-gauge {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 50px;
+  height: 29px;
+}
+
+.dd-ro-gauge svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.dd-ro-gauge path {
+  fill: none;
+  stroke: var(--line-dark-strong);
+  stroke-dasharray: 1.5 3;
+  stroke-width: 3;
+}
+
+.dd-ro-gauge i {
+  position: absolute;
+  bottom: 4px;
+  left: calc(50% - 1px);
+  width: 2px;
+  height: 21px;
+  border-radius: 2px;
+  background: var(--on-dark);
+  transform-origin: 50% 100%;
+}
+
+.dd-ro-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--violet-soft);
+  transform-origin: left;
+  animation: dd-grow linear both;
+}
+
+.dd-scope[data-paused] .dd-ro-bar {
+  animation-play-state: paused;
+}
+
+.dd-scope-msg {
+  min-height: 4.6em;
+  padding-left: 2px;
+  color: var(--on-dark-muted);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.dd-scope-msg span {
+  display: block;
+  animation: dd-fade 0.45s ease both;
+}
+
+.dd-scope-note {
+  grid-area: note;
+  margin-top: 22px;
+  color: var(--on-dark-faint);
+  font-size: 12.5px;
+  text-align: right;
+}
+
+/* The scope arrives: ticks turn in, the face fades up. */
+.dd-hero-stage .dd-dial-scale {
+  animation: dd-dial-in 1.6s var(--ease) 0.15s both;
+}
+
+.dd-hero-stage .dd-face,
+.dd-hero-stage .dd-scope-side {
+  animation: dd-rise 1s var(--ease) 0.45s both;
+}
+
+@keyframes dd-dial-in {
+  from {
+    opacity: 0;
+    rotate: -24deg;
+  }
+}
+
+/* ---------- Sections ---------- */
+
+.dd-section {
+  position: relative;
+  padding: 120px 0;
+}
+
+/* Tools: a rack of four instruments, still at night. */
+.dd-tools {
+  padding-top: 0;
+  background: var(--night);
+}
+
+.dd-tools .dd-scale {
+  margin-bottom: 96px;
+}
+
+.dd-rack {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dd-mod {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 8px 8px 26px;
+  border: 1px solid var(--line-dark);
+  border-radius: 18px;
+  background: var(--panel);
+}
+
+.dd-mod-plate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 10px;
+  color: var(--on-dark-faint);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.dd-mod-no {
+  color: var(--on-dark);
+}
+
+.dd-mod-plate .dd-led {
+  margin-left: auto;
+}
+
+[data-shown] .dd-mod-plate .dd-led {
+  background: var(--green);
+  transition-delay: calc(var(--reveal-delay, 0ms) + 700ms);
+}
+
+.dd-mod-screen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 0.88;
+  overflow: hidden;
+  border: 1px solid rgba(243, 238, 229, 0.06);
+  border-radius: 12px;
+  background: var(--screen);
+  --tick: rgba(243, 238, 229, 0.3);
+}
+
+.dd-mod-screen::after {
+  inset: 10px;
+}
+
+.dd-mod h3 {
+  margin: 22px 10px 8px;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-stretch: 87.5%;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.3;
+}
+
+.dd-mod p {
+  margin: 0 10px;
+  color: var(--on-dark-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* 01 Wi-Fi: rows of devices, the app's own labels */
+.dd-wifi {
+  display: grid;
+  gap: 6px;
+  width: calc(100% - 40px);
+}
+
+.dd-wifi li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(47, 210, 138, 0.18);
+  border-radius: 8px;
+  background: rgba(47, 210, 138, 0.06);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  translate: -12px 0;
+  transition:
+    opacity 0.5s ease,
+    translate 0.6s var(--ease);
+}
+
+.dd-wifi li:nth-child(2) {
+  transition-delay: 0.25s;
+}
+
+.dd-wifi li:nth-child(3) {
+  transition-delay: 0.5s;
+}
+
+[data-shown] .dd-wifi li {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.dd-wifi .dd-led {
+  background: var(--green);
+}
+
+.dd-wifi li > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dd-wifi small {
+  margin-left: auto;
+  color: var(--on-dark-faint);
+  font-size: 10px;
+}
+
+.dd-wifi li.is-unknown {
+  border-color: rgba(255, 45, 79, 0.4);
+  background: rgba(255, 45, 79, 0.08);
+}
+
+.dd-wifi li.is-unknown .dd-led {
+  background: var(--red);
+}
+
+.dd-wifi li.is-unknown small {
+  color: var(--red-soft);
+}
+
+/* A scan line passing down the display. */
+.dd-mod-wifi::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: rgba(163, 155, 255, 0.4);
+  animation: dd-scanline 3.4s ease-in-out infinite;
+}
+
+@keyframes dd-scanline {
+  from {
+    top: 8%;
+    opacity: 0;
+  }
+
+  15%,
+  85% {
+    opacity: 1;
+  }
+
+  to {
+    top: 92%;
+    opacity: 0;
+  }
+}
+
+/* 02 Bluetooth: a small radar */
+.dd-minirad {
+  position: relative;
+  width: 68%;
+  aspect-ratio: 1;
+}
+
+.dd-minirad-ring {
+  position: absolute;
+  border: 1px solid rgba(243, 238, 229, 0.16);
+  border-radius: 50%;
+}
+
+.dd-minirad-ring:nth-child(1) {
+  inset: 0;
+}
+
+.dd-minirad-ring:nth-child(2) {
+  inset: 17%;
+}
+
+.dd-minirad-ring:nth-child(3) {
+  inset: 34%;
+  border-style: dashed;
+}
+
+.dd-minirad-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, transparent 290deg, rgba(163, 155, 255, 0.3) 360deg);
+  animation: dd-spin 4s linear infinite;
+}
+
+.dd-minirad b {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--on-dark);
+  opacity: 0.25;
+  animation: dd-blip-fade 4s linear infinite;
+  animation-delay: var(--ping, 0ms);
+}
+
+.dd-minirad b:nth-of-type(2) {
+  background: var(--violet-soft);
+}
+
+@keyframes dd-blip-fade {
+  0% {
+    opacity: 1;
+    scale: 1.5;
+  }
+
+  10% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  100% {
+    opacity: 0.22;
+  }
+}
+
+.dd-minirad-core {
+  position: absolute;
+  inset: 39%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--violet);
+  color: #ffffff;
+}
+
+/* 03 Magnetometer: the needle swings in and settles on the app's 66.67 µT */
+.dd-meter {
+  width: 80%;
+}
+
+.dd-meter svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.dd-meter-arc {
+  fill: none;
+  stroke: rgba(243, 238, 229, 0.1);
+  stroke-width: 1.5;
+}
+
+.dd-meter line {
+  stroke: rgba(243, 238, 229, 0.36);
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+
+.dd-meter line.is-long {
+  stroke: var(--on-dark);
+  stroke-width: 2;
+}
+
+.dd-meter-needle {
+  transform: rotate(-90deg);
+  transform-origin: 110px 110px;
+}
+
+[data-shown] .dd-meter-needle {
+  animation: dd-needle 2.4s cubic-bezier(0.25, 0.7, 0.3, 1) 0.4s both;
+}
+
+@keyframes dd-needle {
+  0% {
+    transform: rotate(-90deg);
+  }
+
+  40% {
+    transform: rotate(calc(var(--to) + 16deg));
+  }
+
+  62% {
+    transform: rotate(calc(var(--to) - 7deg));
+  }
+
+  80% {
+    transform: rotate(calc(var(--to) + 2.5deg));
+  }
+
+  100% {
+    transform: rotate(var(--to));
+  }
+}
+
+.dd-meter-tremble {
+  transform-origin: 110px 110px;
+  animation: dd-tremble 1.7s ease-in-out 3s infinite alternate;
+}
+
+@keyframes dd-tremble {
+  from {
+    transform: rotate(-0.8deg);
+  }
+
+  to {
+    transform: rotate(1deg);
+  }
+}
+
+.dd-meter .dd-meter-needle line {
+  stroke: var(--violet-soft);
+  stroke-width: 3;
+}
+
+.dd-meter-pivot {
+  fill: var(--on-dark);
+}
+
+.dd-meter-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.dd-meter-value small {
+  color: var(--on-dark-faint);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+/* 04 Light filter, playable */
+.dd-light {
+  position: absolute;
+  inset: 0;
+}
+
+.dd-light img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dd-light-tint {
+  position: absolute;
+  inset: 0;
+  background: var(--filter);
+  mix-blend-mode: multiply;
+  opacity: 0.88;
+  transition: background-color 0.4s ease;
+}
+
+.dd-light-hint {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  padding: 10px 26px;
+  background: rgba(11, 10, 17, 0.6);
+  color: var(--on-dark);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.dd-light-filters {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(11, 10, 17, 0.88);
+  translate: -50% 0;
+}
+
+.dd-light-filters button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s var(--ease);
+}
+
+.dd-light-filters button:hover {
+  transform: scale(1.1);
+}
+
+.dd-light-filters button:active {
+  transform: scale(0.94);
+}
+
+.dd-light-filters button:focus-visible {
+  outline: 2px solid var(--on-dark);
+  outline-offset: 1px;
+}
+
+.dd-light-filters button[aria-pressed='true'] {
+  border-color: currentColor;
+}
+
+.dd-aux {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px 20px;
+  border: 1px dashed var(--line-dark-strong);
+  border-radius: 14px;
+  color: var(--on-dark-muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.dd-aux-plate {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--on-dark);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.dd-aux strong {
+  color: var(--on-dark);
+  font-weight: 600;
+}
+
+/* Linen sections: the warm, already-checked part of the night. */
+.dd-routine,
+.dd-places,
+.dd-final {
+  background: var(--linen);
+  color: var(--ink);
+}
+
+:is(.dd-routine, .dd-places, .dd-final) .dd-ch {
+  border-color: transparent;
+  background: var(--night);
+  color: rgba(243, 238, 229, 0.6);
+}
+
+:is(.dd-routine, .dd-places, .dd-final) .dd-sub {
+  color: var(--ink-muted);
+}
+
+:is(.dd-routine, .dd-places, .dd-final) .dd-terms {
+  color: var(--ink-muted);
+}
+
+/* Routine: the steps tick themselves along a scale; the traveler, room checked. */
+.dd-routine-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  align-items: center;
+  gap: 88px;
+}
+
+.dd-frame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--linen-deep);
+}
+
+.dd-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dd-routine-photo {
+  position: relative;
+}
+
+.dd-routine-photo .dd-frame {
+  aspect-ratio: 760 / 900;
+}
+
+.dd-plate {
+  position: absolute;
+  bottom: 22px;
+  left: 22px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 16px 0 14px;
+  border-radius: 10px;
+  background: var(--night);
+  color: var(--on-dark);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dd-plate .dd-led {
+  background: var(--green);
+}
+
+.dd-routine .dd-head {
+  margin-bottom: 36px;
+}
+
+.dd-steps {
+  position: relative;
+}
+
+.dd-steps::before,
+.dd-steps::after {
+  content: '';
+  position: absolute;
+  top: 26px;
+  bottom: 26px;
+  left: 11.5px;
+  width: 1px;
+  background: var(--line-light);
+}
+
+.dd-steps::after {
+  width: 2px;
+  left: 11px;
+  background: var(--green);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 2.2s cubic-bezier(0.45, 0, 0.3, 1) 0.5s;
+}
+
+.dd-steps[data-shown]::after {
+  transform: none;
+}
+
+.dd-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 24px 36px minmax(0, 1fr);
+  align-items: start;
+  gap: 0 14px;
+  padding: 14px 0;
+}
+
+.dd-step-mark {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border: 1.5px solid rgba(21, 18, 30, 0.28);
+  border-radius: 50%;
+  background: var(--linen);
+  color: transparent;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+  transition-delay: calc(var(--i, 0) * 420ms + 600ms);
+}
+
+[data-shown] .dd-step-mark {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--night);
+}
+
+.dd-step-no {
+  color: var(--ink-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 26px;
+}
+
+.dd-step-text strong {
+  display: block;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-stretch: 87.5%;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 26px;
+}
+
+.dd-step-text > span {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Screens: the app's own screenshots on the night panel. */
+.dd-screens {
+  background: var(--night);
+}
+
+.dd-shots {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.dd-shot {
+  flex: 0 1 290px;
+  min-width: 0;
+}
+
+.dd-shot-frame {
+  display: block;
+  padding: 8px;
+  border: 1px solid var(--line-dark);
+  border-radius: 34px;
+  background: var(--panel);
+  transition: transform 0.5s var(--ease);
+}
+
+.dd-shot:hover .dd-shot-frame {
+  transform: translateY(-6px);
+}
+
+.dd-shot img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 600 / 1298;
+  border-radius: 26px;
+  background: var(--screen);
+}
+
+.dd-shot figcaption {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  color: var(--on-dark-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.dd-shot figcaption span {
+  color: var(--violet-soft);
+}
+
+/* Places: the night lifts from each photo as it comes into view. */
+.dd-places-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.dd-place-frame {
+  aspect-ratio: 4 / 5;
+}
+
+.dd-place-frame img {
+  filter: saturate(0.25) brightness(0.55);
+  transition:
+    filter 1.4s ease,
+    scale 0.9s var(--ease);
+}
+
+.dd-place-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #2e2670;
+  mix-blend-mode: multiply;
+  opacity: 0.7;
+  transition: opacity 1.4s ease;
+}
+
+[data-shown] .dd-place-frame img {
+  filter: none;
+  transition-delay: calc(var(--reveal-delay, 0ms) + 500ms), 0s;
+}
+
+[data-shown] .dd-place-frame::before {
+  opacity: 0;
+  transition-delay: calc(var(--reveal-delay, 0ms) + 500ms);
+}
+
+.dd-place:hover .dd-place-frame img {
+  scale: 1.04;
+}
+
+.dd-place-check {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--night);
+  scale: 0;
+  transition: scale 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+[data-shown] .dd-place-check {
+  scale: 1;
+  transition-delay: calc(var(--reveal-delay, 0ms) + 1300ms);
+}
+
+.dd-place > strong {
+  display: block;
+  margin-top: 20px;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-stretch: 87.5%;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.3;
+}
+
+.dd-place > span:last-child {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-muted);
+  font-size: 15.5px;
+  line-height: 1.5;
+}
+
+/* FAQ: an instrument list. */
+.dd-faq {
+  background: var(--night);
+}
+
+.dd-faq-list {
+  border-top: 1px solid var(--line-dark);
+}
+
+.dd-faq details {
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.dd-faq summary {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 0;
+  border-radius: 6px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.dd-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.dd-faq summary:focus-visible {
+  outline: 2px solid var(--violet-soft);
+  outline-offset: 4px;
+}
+
+.dd-faq-no {
+  color: var(--on-dark-faint);
+  font-family: var(--mono);
+  font-size: 12px;
+  transition: color 0.3s ease;
+}
+
+.dd-faq-q {
+  color: var(--on-dark);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.dd-faq-key {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line-dark-strong);
+  border-radius: 9px;
+  color: var(--on-dark);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.dd-faq-key svg {
+  transition: rotate 0.3s var(--ease);
+}
+
+.dd-faq summary:hover .dd-faq-key {
+  border-color: var(--violet-soft);
+}
+
+.dd-faq details[open] .dd-faq-key {
+  border-color: var(--violet);
+  background: var(--violet);
+}
+
+.dd-faq details[open] .dd-faq-key svg {
+  rotate: 45deg;
+}
+
+.dd-faq details[open] .dd-faq-no {
+  color: var(--green);
+}
+
+.dd-faq details p {
+  max-width: 800px;
+  padding: 0 52px 26px 80px;
+  color: var(--on-dark-muted);
+  font-size: 16.5px;
+  line-height: 1.6;
+  animation: dd-rise 0.35s var(--ease);
+}
+
+/* Final: the same room, lamps on, a green ring closing around it. */
+.dd-final {
+  position: relative;
+  padding: 120px 0 128px;
+  overflow: clip;
+}
+
+.dd-final-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  align-items: center;
+  gap: 88px;
+}
+
+.dd-final-dial {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.dd-final-dial .dd-dial-scale line {
+  stroke: rgba(21, 18, 30, 0.22);
+}
+
+.dd-final-dial .dd-dial-scale line.is-mid {
+  stroke: rgba(21, 18, 30, 0.5);
+}
+
+.dd-final-dial .dd-dial-scale line.is-major {
+  stroke: var(--violet);
+}
+
+.dd-final-dial .dd-dial-rim {
+  stroke: rgba(21, 18, 30, 0.12);
+}
+
+.dd-final-dial .dd-dial-done {
+  transition: stroke-dashoffset 1.8s var(--ease) 0.6s;
+}
+
+.dd-final-dial[data-shown] .dd-dial-done {
+  stroke-dashoffset: 0;
+}
+
+.dd-final-dial .dd-face img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 1.8s ease 0.3s;
+}
+
+/* The night lifts as the ring closes: same room as the hero, lamps on. */
+.dd-final-dial[data-shown] .dd-face img {
+  filter: saturate(1.08) brightness(1.04);
+}
+
+.dd-final-badge {
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  border-radius: 10px;
+  background: var(--night);
+  color: var(--on-dark);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  translate: -50% 0;
+}
+
+.dd-final-badge svg {
+  color: var(--green);
+}
+
+.dd-final-title {
+  font-size: clamp(32px, 4vw, 54px);
+}
+
+.dd-final-lead {
+  margin: 22px 0 32px;
+  color: var(--ink-muted);
+  font-size: 19px;
+}
+
+/* Footer */
+
+.dd-footer {
+  padding: 36px 0;
+  background: var(--night);
+  color: var(--on-dark-faint);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.dd-footer-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.dd-footer p {
+  max-width: 760px;
+}
+
+.dd-footer nav {
+  display: flex;
+  flex-shrink: 0;
+  gap: 22px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.dd-footer a {
+  color: var(--on-dark);
+  text-decoration: underline;
+  text-decoration-color: rgba(243, 238, 229, 0.3);
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+
+.dd-footer a:hover {
+  color: var(--violet-soft);
+}
+
+/* Bottom dock on phones, once the hero button is gone. */
+
+.dd-dock {
+  position: fixed;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border: 1px solid var(--line-dark-strong);
+  border-radius: 16px;
+  background: rgba(21, 18, 30, 0.96);
+  color: var(--on-dark);
+  box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.55);
+  transform: translateY(160%);
+  transition: transform 0.45s var(--ease);
+}
+
+.dd-dock.is-visible {
+  transform: translateY(0);
+}
+
+.dd-dock img {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.dd-dock-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.dd-dock-text strong {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.dd-dock-text small {
+  overflow: hidden;
+  color: var(--on-dark-faint);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dd-dock .dd-key {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ---------- Narrower desktops ---------- */
+
+@media (max-width: 1180px) {
+  .dd-hero-grid {
+    grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .dd-scope {
+    grid-template-columns: minmax(0, 1fr) 176px;
+    column-gap: 18px;
+  }
+
+  .dd-routine-grid,
+  .dd-final-grid {
+    gap: 56px;
+  }
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 980px) {
+  .dd-hero {
+    padding-bottom: 72px;
+  }
+
+  .dd-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 56px;
+  }
+
+  .dd-hero-copy {
+    max-width: 600px;
+  }
+
+  .dd-h1 {
+    font-size: clamp(44px, 7.4vw, 62px);
+  }
+
+  .dd-lead {
+    max-width: 520px;
+  }
+
+  .dd-rack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dd-places-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 20px;
+  }
+}
+
+@media (max-width: 900px) {
+  .dd-header-key {
+    display: none;
+  }
+
+  .dd-status {
+    position: static;
+    margin-left: auto;
+    translate: none;
+  }
+
+  .dd-dock {
+    display: flex;
+  }
+
+  .dd-routine-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
+  }
+
+  .dd-routine-photo {
+    order: 2;
+    max-width: 520px;
+  }
+
+  .dd-shots {
+    justify-content: flex-start;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .dd-shots::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dd-shot {
+    flex: none;
+    width: 240px;
+    scroll-snap-align: start;
+  }
+
+  .dd-final-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 48px;
+  }
+
+  .dd-final-dial {
+    max-width: 440px;
+  }
+
+  .dd-footer {
+    padding-bottom: 120px;
+  }
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 640px) {
+  .dd {
+    --gutter: 20px;
+    --header-h: 56px;
+
+    font-size: 16px;
+  }
+
+  .dd-ribbon {
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .dd-ribbon-deal {
+    font-size: 12px;
+  }
+
+  .dd-brand {
+    font-size: 12px;
+  }
+
+  .dd-brand img {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+  }
+
+  .dd-status {
+    font-size: 11px;
+  }
+
+  .dd-hero {
+    padding: calc(var(--header-h) + 20px) 0 56px;
+  }
+
+  .dd-hero-grid {
+    gap: 40px;
+  }
+
+  .dd-h1 {
+    font-size: min(12.2vw, 50px);
+    letter-spacing: -0.06em;
+  }
+
+  .dd-lead {
+    margin-top: 16px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .dd-offer {
+    margin-top: 22px;
+  }
+
+  .dd-price {
+    margin-bottom: 10px;
+  }
+
+  .dd-key:not(.dd-key-small) {
+    width: 100%;
+    min-height: 56px;
+  }
+
+  .dd-terms {
+    margin-top: 10px;
+    font-size: 12.5px;
+  }
+
+  .dd-spec {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 24px;
+  }
+
+  .dd-spec > div {
+    padding: 0 12px;
+  }
+
+  .dd-spec dd {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  /* The scope: dial on top, three readouts in a row under it. */
+  .dd-scope {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'dial'
+      'side'
+      'note';
+    row-gap: 16px;
+  }
+
+  .dd-dial {
+    justify-self: stretch;
+    max-width: none;
+  }
+
+  .dd-readouts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .dd-ro {
+    gap: 6px;
+    padding: 10px 10px 12px;
+    border-radius: 10px;
+  }
+
+  .dd-ro-head {
+    gap: 6px;
+    font-size: 10px;
+  }
+
+  .dd-ro-head > span:not(.dd-ro-name) {
+    display: none;
+  }
+
+  .dd-ro-value {
+    font-size: 16px;
+  }
+
+  .dd-ro-value small {
+    font-size: 10px;
+  }
+
+  .dd-ro-sub {
+    font-size: 11.5px;
+  }
+
+  .dd-ro-gauge {
+    display: none;
+  }
+
+  .dd-scope-msg {
+    min-height: 3.2em;
+    text-align: center;
+  }
+
+  .dd-scope-note {
+    margin-top: 0;
+    text-align: center;
+  }
+
+  .dd-toast {
+    top: -6px;
+    right: 50%;
+    width: min(300px, 92%);
+    translate: 50% 0;
+  }
+
+  .dd-blip > b,
+  .dd-you > b {
+    padding: 4px 6px;
+    font-size: 9.5px;
+  }
+
+  .dd-target i {
+    top: -26px;
+    left: -26px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .dd-you {
+    width: 26px;
+    height: 26px;
+  }
+
+  .dd-you svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .dd-section {
+    padding: 80px 0;
+  }
+
+  .dd-tools {
+    padding-top: 0;
+  }
+
+  .dd-tools .dd-scale {
+    margin-bottom: 64px;
+  }
+
+  .dd-head {
+    margin-bottom: 36px;
+  }
+
+  .dd-h2 {
+    font-size: min(7.6vw, 30px);
+    line-height: 1.2;
+  }
+
+  .dd-br {
+    display: none;
+  }
+
+  /* On phones the readout keeps its channel and bars, so it always runs in on the first line. */
+  .dd-h2 {
+    text-wrap: wrap;
+  }
+
+  .dd-ch {
+    height: 26px;
+    gap: 6px;
+    margin-right: 0.4em;
+    padding: 0 8px;
+    border-radius: 7px;
+    font-size: 10.5px;
+  }
+
+  .dd-ch-name {
+    display: none;
+  }
+
+  .dd-sub {
+    margin-top: 14px;
+    font-size: 16px;
+  }
+
+  /* Long lists become swipeable rows. */
+  .dd-rack,
+  .dd-places-row {
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-columns: 82%;
+    grid-auto-flow: column;
+    gap: 12px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 4px var(--gutter) 12px;
+    overflow-x: auto;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .dd-places-row {
+    grid-auto-columns: 74%;
+    margin-inline: 0;
+  }
+
+  .dd-rack::-webkit-scrollbar,
+  .dd-places-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dd-mod,
+  .dd-place {
+    scroll-snap-align: start;
+  }
+
+  .dd-aux {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    font-size: 15px;
+  }
+
+  .dd-routine-grid {
+    gap: 40px;
+  }
+
+  .dd-steps li {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .dd-step-no {
+    display: none;
+  }
+
+  .dd-step-text strong {
+    font-size: 16px;
+  }
+
+  .dd-step-text > span {
+    font-size: 15px;
+  }
+
+  .dd-plate {
+    bottom: 16px;
+    left: 16px;
+    height: 36px;
+    font-size: 11px;
+  }
+
+  .dd-shot {
+    width: 210px;
+  }
+
+  .dd-shot-frame {
+    border-radius: 28px;
+  }
+
+  .dd-shot img {
+    border-radius: 21px;
+  }
+
+  .dd-faq summary {
+    grid-template-columns: minmax(0, 1fr) 34px;
+    gap: 12px;
+    padding: 18px 0;
+  }
+
+  .dd-faq-no {
+    display: none;
+  }
+
+  .dd-faq-q {
+    font-size: 16.5px;
+  }
+
+  .dd-faq-key {
+    width: 34px;
+    height: 34px;
+  }
+
+  .dd-faq details p {
+    padding: 0 0 22px;
+    font-size: 15.5px;
+  }
+
+  .dd-final {
+    padding: 72px 0 88px;
+  }
+
+  .dd-final-grid {
+    gap: 36px;
+  }
+
+  .dd-final-dial {
+    width: 86%;
+    margin-inline: auto;
+  }
+
+  .dd-final-title {
+    font-size: min(9.6vw, 38px);
+  }
+
+  .dd-final-lead {
+    margin: 16px 0 24px;
+    font-size: 17px;
+  }
+
+  .dd-footer-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .dd-status-what,
+  .dd-plate-more {
+    display: none;
+  }
+
+  .dd-ro-head {
+    font-size: 9.5px;
+  }
+
+  .dd-ro-value {
+    font-size: 14px;
+  }
+
+  .dd-spec dt {
+    font-size: 10px;
+  }
+
+  .dd-spec dd {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 340px) {
+  .dd-ribbon p {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 330px) {
+  .dd-dock img {
+    display: none;
+  }
+
+  .dd-dock {
+    padding-left: 14px;
+  }
+
+  .dd-ro {
+    padding: 9px 8px 10px;
+  }
+
+  .dd-ro-name {
+    display: none;
+  }
+
+  .dd-ro-head > span:not(.dd-ro-name) {
+    display: inline;
+  }
+
+  .dd-spec > div {
+    padding: 0 8px;
+  }
+}
+
+/* No motion: everything in its final place. */
+@media (prefers-reduced-motion: reduce) {
+  .dd *,
+  .dd *::before,
+  .dd *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .dd-meter-needle {
+    transform: rotate(var(--to));
+  }
+
+  .dd-scope[data-phase='relax'] .dd-dial-done {
+    stroke-dashoffset: 0;
+  }
+
+  .dd-blip > i::after,
+  .dd-target i:nth-child(2) {
+    display: none;
+  }
+}

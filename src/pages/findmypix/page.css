@@ -1,0 +1,2560 @@
+/*
+ * FindMyPix: contact sheets on a light table. Film-black strips with sprocket holes on light-table
+ * white, frames in black and white, the matches circled in red grease pencil, the matched face in
+ * color. Space Grotesk only. Blue is the app's own button color; mint means a confirmed match.
+ */
+.fmp {
+  --fmp-table: #f7f7f4;
+  --fmp-table-2: #edede8;
+  --fmp-white: #ffffff;
+  --fmp-film: #121417;
+  --fmp-film-2: #1d2024;
+  --fmp-film-3: #2b2f34;
+  --fmp-ink: #121417;
+  --fmp-muted: #5a5f66;
+  --fmp-muted-2: #878c92;
+  --fmp-line: rgba(18, 20, 23, 0.12);
+  --fmp-line-2: rgba(18, 20, 23, 0.22);
+  --fmp-edge-ink: rgba(247, 247, 244, 0.5);
+  --fmp-red: #e5372b;
+  --fmp-blue: #1a7ff0;
+  --fmp-blue-hover: #116fdb;
+  --fmp-blue-press: #0b5ec0;
+  --fmp-mint: #22d08f;
+  --fmp-green: #1dbf84;
+  --fmp-orange: #ff9422;
+  --fmp-yellow: #ffc634;
+  --fmp-badge-red: #f2545b;
+  --fmp-ease: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --fmp-gutter: 24px;
+  --fmp-num: 120px;
+  /* Sprocket holes: light-table holes for film, faint ink holes for the header's film edge. */
+  --fmp-perf-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8'%3E%3Crect x='5' width='10' height='8' rx='2' fill='%23f7f7f4'/%3E%3C/svg%3E");
+  --fmp-perf-y: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='20'%3E%3Crect y='5' width='8' height='10' rx='2' fill='%23f7f7f4'/%3E%3C/svg%3E");
+  --fmp-perf-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8'%3E%3Crect x='5' width='10' height='8' rx='2' fill='%23121417'/%3E%3C/svg%3E");
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--fmp-table);
+  color: var(--fmp-ink);
+  font-family: 'Space Grotesk Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.fmp *,
+.fmp *::before,
+.fmp *::after {
+  box-sizing: border-box;
+}
+
+:where(.fmp) :where(h1, h2, h3, p, ol, ul, figure, dl, dd) {
+  margin: 0;
+}
+
+:where(.fmp) :where(ol, ul) {
+  padding: 0;
+  list-style: none;
+}
+
+:where(.fmp) :where(button) {
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(.fmp) :where(a) {
+  color: inherit;
+}
+
+:where(.fmp) :where(img) {
+  display: block;
+}
+
+.fmp-wrap {
+  width: 100%;
+  max-width: calc(1200px + var(--fmp-gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--fmp-gutter);
+}
+
+/* ---------- Grease pencil ---------- */
+
+.fmp-grease {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.fmp-grease path {
+  fill: none;
+  stroke: var(--fmp-red);
+  stroke-width: var(--gw, 3);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes fmp-draw {
+  from {
+    stroke-dashoffset: 1.01;
+    opacity: 0;
+  }
+
+  2% {
+    opacity: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fmp-grease path {
+    stroke-dasharray: 1 1.2;
+  }
+
+  [data-reveal]:not([data-shown]) .fmp-grease path {
+    stroke-dashoffset: 1.01;
+    opacity: 0;
+  }
+
+  [data-reveal][data-shown] .fmp-grease path {
+    animation: fmp-draw 0.9s cubic-bezier(0.55, 0.1, 0.3, 1) both;
+    animation-delay: var(--draw-delay, 0.35s);
+  }
+
+  [data-reveal][data-shown] .fmp-arrow-head {
+    animation-duration: 0.3s;
+    animation-delay: calc(var(--draw-delay, 0.35s) + 0.75s);
+  }
+}
+
+/* The app's face frame (its own UI): four corners drawn with backgrounds. */
+.fmp-brackets {
+  --bk-c: var(--fmp-mint);
+  --bk-l: 14px;
+  --bk-t: 2px;
+
+  background:
+    linear-gradient(var(--bk-c), var(--bk-c)) left top / var(--bk-l) var(--bk-t),
+    linear-gradient(var(--bk-c), var(--bk-c)) left top / var(--bk-t) var(--bk-l),
+    linear-gradient(var(--bk-c), var(--bk-c)) right top / var(--bk-l) var(--bk-t),
+    linear-gradient(var(--bk-c), var(--bk-c)) right top / var(--bk-t) var(--bk-l),
+    linear-gradient(var(--bk-c), var(--bk-c)) left bottom / var(--bk-l) var(--bk-t),
+    linear-gradient(var(--bk-c), var(--bk-c)) left bottom / var(--bk-t) var(--bk-l),
+    linear-gradient(var(--bk-c), var(--bk-c)) right bottom / var(--bk-l) var(--bk-t),
+    linear-gradient(var(--bk-c), var(--bk-c)) right bottom / var(--bk-t) var(--bk-l);
+  background-repeat: no-repeat;
+}
+
+/* ---------- Type ---------- */
+
+.fmp-h1 {
+  font-size: clamp(38px, 4.1vw, 58px);
+  font-weight: 600;
+  line-height: 1.03;
+  letter-spacing: -0.042em;
+}
+
+.fmp-circled {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.fmp-circled-loop {
+  --gw: 4.2;
+
+  top: -15%;
+  left: -8%;
+  width: 116%;
+  height: 134%;
+}
+
+.fmp-h2 {
+  display: flex;
+  align-items: baseline;
+  font-size: clamp(32px, 3.4vw, 48px);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+}
+
+.fmp-h2-text {
+  max-width: 18em;
+  text-wrap: balance;
+}
+
+/* The section's frame number, printed beside the heading like film edge text. */
+.fmp-fno {
+  flex: none;
+  width: var(--fmp-num);
+  color: var(--fmp-muted);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fmp-fno i {
+  margin-left: 6px;
+  color: var(--fmp-red);
+  font-style: normal;
+}
+
+.fmp-head {
+  margin-bottom: 56px;
+}
+
+.fmp-head-lead {
+  max-width: 34em;
+  margin: 20px 0 0 var(--fmp-num);
+  color: var(--fmp-muted);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.fmp-head-lead-light {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+/* ---------- Buttons ---------- */
+
+.fmp-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--fmp-blue);
+  color: var(--fmp-white);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition:
+    background-color 0.18s ease,
+    transform 0.12s ease;
+}
+
+.fmp-cta svg {
+  flex-shrink: 0;
+  transition: transform 0.3s var(--fmp-ease);
+}
+
+.fmp-cta:hover {
+  background: var(--fmp-blue-hover);
+}
+
+.fmp-cta:hover svg {
+  transform: translateX(4px);
+}
+
+.fmp-cta:active {
+  background: var(--fmp-blue-press);
+  transform: translateY(1px);
+}
+
+.fmp-cta:focus-visible,
+.fmp-header-cta:focus-visible,
+.fmp-faces button:focus-visible,
+.fmp-pocket summary:focus-visible,
+.fmp-identity:focus-visible,
+.fmp-footer a:focus-visible {
+  outline: 2px solid var(--fmp-blue);
+  outline-offset: 3px;
+}
+
+.fmp-cta-small {
+  min-height: 46px;
+  padding: 0 18px;
+  font-size: 16px;
+}
+
+.fmp-price {
+  color: var(--fmp-muted);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmp-price strong {
+  color: var(--fmp-ink);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.fmp-price s {
+  margin: 0 4px;
+}
+
+.fmp-terms {
+  margin-top: 14px;
+  color: var(--fmp-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* ---------- Film strip (hero sheet, "why" strip, last sheet) ---------- */
+
+.fmp-strip {
+  --fw: 176px;
+  --fg: 8px;
+  --band-t: 20px;
+  --band-b: 32px;
+  --hole-h: 7px;
+  --hole-pitch: 18px;
+
+  position: relative;
+  display: flex;
+  gap: var(--fg);
+  width: max-content;
+  padding: var(--band-t) var(--fg) var(--band-b);
+  background: var(--fmp-film);
+}
+
+.fmp-strip::before,
+.fmp-strip::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: var(--hole-h);
+  background: var(--fmp-perf-x) repeat-x 0 0 / var(--hole-pitch) var(--hole-h);
+  pointer-events: none;
+}
+
+.fmp-strip::before {
+  top: calc((var(--band-t) - var(--hole-h)) / 2);
+}
+
+.fmp-strip::after {
+  bottom: 6px;
+}
+
+.fmp-frame {
+  position: relative;
+  flex: none;
+  width: var(--fw);
+  aspect-ratio: 3 / 2;
+  background: var(--fmp-film-3);
+}
+
+.fmp-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--fmp-table);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fmp-shot {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.fmp-shot > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fmp-shot[data-vary] > img {
+  transform: scale(1.18) translate(4%, -3%);
+}
+
+.fmp-canvas {
+  position: absolute;
+}
+
+.fmp-canvas img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.fmp-shot-gray {
+  filter: grayscale(1) contrast(1.08) brightness(0.96);
+}
+
+.fmp-edge {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  color: var(--fmp-edge-ink);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.fmp-frame-loop {
+  --gw: 1.9;
+
+  z-index: 3;
+  top: -18%;
+  left: -11%;
+  width: 122%;
+  height: 136%;
+}
+
+/* ---------- Creator ribbon ---------- */
+
+.fmp-ribbon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 12px 16px;
+  background: var(--fmp-film);
+  color: var(--fmp-white);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.fmp-ribbon::before,
+.fmp-ribbon::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: var(--fmp-perf-x) repeat-x 0 0 / 11px 4px;
+  opacity: 0.45;
+}
+
+.fmp-ribbon::before {
+  top: 3px;
+}
+
+.fmp-ribbon::after {
+  bottom: 3px;
+}
+
+.fmp-ribbon p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fmp-ribbon strong {
+  font-weight: 600;
+}
+
+.fmp-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--fmp-mint);
+  color: var(--fmp-ink);
+  font-size: 10px;
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.fmp-ribbon-deal {
+  flex-shrink: 0;
+  color: var(--fmp-mint);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Header: a film edge with a frame counter ---------- */
+
+.fmp-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.fmp-header-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100% + 40px);
+  pointer-events: none;
+}
+
+.fmp-header-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.fmp-header-tint-light {
+  background: linear-gradient(
+    to bottom,
+    rgba(247, 247, 244, 0.94) 0%,
+    rgba(247, 247, 244, 0.66) 50%,
+    rgba(247, 247, 244, 0) 100%
+  );
+}
+
+.fmp-header-tint-dark {
+  background: linear-gradient(
+    to bottom,
+    rgba(18, 20, 23, 0.9) 0%,
+    rgba(18, 20, 23, 0.58) 50%,
+    rgba(18, 20, 23, 0) 100%
+  );
+}
+
+.fmp-header[data-stuck='true'][data-tone='light'] .fmp-header-tint-light,
+.fmp-header[data-stuck='true'][data-tone='dark'] .fmp-header-tint-dark {
+  opacity: 1;
+}
+
+.fmp-header-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 68px;
+}
+
+.fmp-identity {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  text-decoration: none;
+  transition: color 0.35s ease;
+}
+
+.fmp-identity img {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 7px;
+}
+
+.fmp-run {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  gap: 14px;
+}
+
+.fmp-run::before,
+.fmp-run::after {
+  content: '';
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  background: var(--fmp-perf-ink) repeat-x 0 0 / 15px 6px;
+  opacity: 0.17;
+  transition: opacity 0.35s ease;
+}
+
+.fmp-counter-group {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+}
+
+.fmp-counter {
+  display: inline-flex;
+  align-items: baseline;
+  height: 26px;
+  padding: 0 8px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--fmp-film);
+  color: var(--fmp-white);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 26px;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
+}
+
+.fmp-counter-no {
+  display: inline-block;
+  min-width: 2.2ch;
+  text-align: right;
+  animation: fmp-roll 0.45s var(--fmp-ease) both;
+}
+
+.fmp-counter small {
+  margin-left: 2px;
+  opacity: 0.5;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@keyframes fmp-roll {
+  from {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+}
+
+.fmp-counter-name {
+  color: var(--fmp-muted);
+  font-size: 14px;
+  white-space: nowrap;
+  transition: color 0.35s ease;
+}
+
+.fmp-header-cta {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--fmp-blue);
+  color: var(--fmp-white);
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.18s ease;
+}
+
+.fmp-header-cta:hover {
+  background: var(--fmp-blue-hover);
+}
+
+.fmp-header-cta:active {
+  background: var(--fmp-blue-press);
+}
+
+.fmp-header[data-tone='dark'] .fmp-identity {
+  color: var(--fmp-white);
+}
+
+.fmp-header[data-tone='dark'] .fmp-run::before,
+.fmp-header[data-tone='dark'] .fmp-run::after {
+  background-image: var(--fmp-perf-x);
+  opacity: 0.3;
+}
+
+.fmp-header[data-tone='dark'] .fmp-counter {
+  background: var(--fmp-table);
+  color: var(--fmp-ink);
+}
+
+.fmp-header[data-tone='dark'] .fmp-counter-name {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Hero: the contact sheet, a loupe and a card laid on top ---------- */
+
+.fmp-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.fmp-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.fmp-strips {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transform: translate(-50%, -50%);
+}
+
+.fmp-strips > .fmp-strip:nth-child(1) {
+  transform: translateX(-14px) rotate(-0.22deg);
+}
+
+.fmp-strips > .fmp-strip:nth-child(2) {
+  transform: translateX(10px) rotate(0.14deg);
+}
+
+.fmp-strips > .fmp-strip:nth-child(3) {
+  transform: translateX(-4px) rotate(-0.08deg);
+}
+
+.fmp-strips > .fmp-strip:nth-child(4) {
+  transform: translateX(16px) rotate(0.26deg);
+}
+
+/* Prints develop in sequence; the matched face comes up in color and gets circled. */
+.fmp-sheet .fmp-frame::after {
+  animation: fmp-develop 1.2s ease-out both;
+  animation-delay: calc(var(--n) * 24ms + 100ms);
+}
+
+@keyframes fmp-develop {
+  from {
+    opacity: 0.94;
+  }
+}
+
+.fmp-sheet .fmp-shot-face {
+  animation: fmp-fade 0.9s ease both;
+  animation-delay: calc(var(--n) * 30ms + 1.05s);
+}
+
+@keyframes fmp-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fmp-sheet .fmp-frame-loop path {
+    animation: fmp-draw 1s cubic-bezier(0.55, 0.1, 0.3, 1) both;
+    animation-delay: calc(var(--n) * 30ms + 1s);
+  }
+
+  .fmp-circled-loop path {
+    animation: fmp-draw 0.95s cubic-bezier(0.55, 0.1, 0.3, 1) 0.75s both;
+  }
+}
+
+.fmp-loupe {
+  --lr: 112px;
+  --lm: 2.1;
+
+  position: absolute;
+  top: calc(var(--ly, -999px) - var(--lr));
+  left: calc(var(--lx, -999px) - var(--lr));
+  z-index: 5;
+  width: calc(var(--lr) * 2);
+  height: calc(var(--lr) * 2);
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--fmp-table);
+  box-shadow:
+    0 0 0 6px var(--fmp-film),
+    0 0 0 8px rgba(255, 255, 255, 0.92),
+    0 30px 50px -18px rgba(18, 20, 23, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease 1.1s;
+}
+
+.fmp-sheet[data-loupe='ready'] .fmp-loupe {
+  opacity: 1;
+}
+
+.fmp-loupe::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 0 -16px 32px -14px rgba(18, 20, 23, 0.4);
+}
+
+.fmp-loupe-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--sw, 100%);
+  height: var(--sh, 100%);
+  transform-origin: 0 0;
+  transform: translate(calc(var(--lr) - var(--lx, 0px) * var(--lm)), calc(var(--lr) - var(--ly, 0px) * var(--lm)))
+    scale(var(--lm));
+}
+
+.fmp-hero-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  min-height: clamp(660px, calc(100svh - 114px), 800px);
+  padding-block: 48px;
+  pointer-events: none;
+}
+
+.fmp-card {
+  width: min(100%, 580px);
+  padding: 44px 44px 0;
+  border-radius: 2px;
+  background: var(--fmp-white);
+  box-shadow:
+    0 1px 2px rgba(18, 20, 23, 0.08),
+    0 36px 70px -30px rgba(18, 20, 23, 0.5);
+  pointer-events: auto;
+  animation: fmp-card-in 0.95s var(--fmp-ease) 0.2s both;
+}
+
+@keyframes fmp-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+
+.fmp-lead {
+  margin-top: 22px;
+  color: var(--fmp-muted);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.fmp-offer {
+  margin-top: 30px;
+}
+
+.fmp-offer .fmp-price {
+  margin-bottom: 14px;
+}
+
+.fmp-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 30px -44px 0;
+  padding: 16px 44px 18px;
+  border-top: 1px solid var(--fmp-line);
+  color: var(--fmp-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.fmp-proof li {
+  white-space: nowrap;
+}
+
+.fmp-proof li::before {
+  content: '▸';
+  margin-right: 7px;
+  color: var(--fmp-red);
+}
+
+/* ---------- Sections ---------- */
+
+.fmp-sec {
+  padding: 132px 0;
+}
+
+/* ---------- 08A · The search (the product demo as a strip of film) ---------- */
+
+.fmp-search {
+  padding-bottom: 116px;
+}
+
+.fmp-roll {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fmp-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fmp-cell-film {
+  position: relative;
+  padding: 22px 7px 32px;
+  background: var(--fmp-film);
+}
+
+
+.fmp-cell-film::before,
+.fmp-cell-film::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 7px;
+  background: var(--fmp-perf-x) repeat-x 0 0 / 18px 7px;
+}
+
+.fmp-cell-film::before {
+  top: 7px;
+}
+
+.fmp-cell-film::after {
+  bottom: 6px;
+}
+
+.fmp-cell-print {
+  position: absolute;
+  bottom: 15px;
+  left: 7px;
+  color: var(--fmp-edge-ink);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fmp-cell-frame {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--fmp-film-3);
+}
+
+.fmp-cell-loop {
+  --gw: 1.35;
+
+  z-index: 3;
+  top: 3px;
+  left: -10px;
+  width: calc(100% + 20px);
+  height: calc(100% - 10px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fmp-cell-loop path {
+    animation: fmp-draw 0.85s cubic-bezier(0.55, 0.1, 0.3, 1) 0.45s both;
+  }
+}
+
+.fmp-selfie img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: fmp-fade 0.5s ease both;
+}
+
+.fmp-selfie-box {
+  --bk-c: var(--fmp-white);
+  --bk-l: 16px;
+
+  position: absolute;
+  inset: 12% 31%;
+  transition: inset 0.6s var(--fmp-ease);
+}
+
+.fmp-selfie[data-phase='results'] .fmp-selfie-box {
+  --bk-c: var(--fmp-mint);
+
+  inset: 16% 34%;
+}
+
+.fmp-scanline {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 30%;
+  border-bottom: 2px solid var(--fmp-mint);
+  background: linear-gradient(to bottom, rgba(34, 208, 143, 0), rgba(34, 208, 143, 0.28));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fmp-selfie[data-phase='scan'] .fmp-scanline {
+  opacity: 1;
+  animation: fmp-scan 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes fmp-scan {
+  from {
+    translate: 0 -100%;
+  }
+
+  to {
+    translate: 0 240%;
+  }
+}
+
+.fmp-unexposed {
+  position: absolute;
+  inset: 0;
+  background: var(--fmp-film-3);
+}
+
+.fmp-cell[data-state='searching'] .fmp-unexposed {
+  background: linear-gradient(100deg, var(--fmp-film-3) 35%, #3a3f45 50%, var(--fmp-film-3) 65%) 0 0 / 300% 100%;
+  animation: fmp-sweep 1.3s linear infinite;
+}
+
+@keyframes fmp-sweep {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+.fmp-cell[data-state='found'] .fmp-cell-frame .fmp-shot {
+  animation: fmp-expose 0.7s ease both;
+}
+
+@keyframes fmp-expose {
+  from {
+    opacity: 0;
+    filter: brightness(2.2);
+  }
+}
+
+.fmp-cell .fmp-shot-face {
+  animation: fmp-fade 0.6s ease 0.5s both;
+}
+
+.fmp-facebox {
+  --bk-l: 10px;
+
+  position: absolute;
+  animation: fmp-lock 0.5s var(--fmp-ease) 0.3s both;
+}
+
+@keyframes fmp-lock {
+  from {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.fmp-cell-cap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  gap: 8px;
+  padding: 22px 7px 0;
+}
+
+.fmp-cap-title {
+  color: var(--fmp-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.fmp-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.fmp-status[data-phase='results']::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--fmp-mint);
+}
+
+.fmp-progress {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: 3px;
+  overflow: hidden;
+  background: var(--fmp-line);
+}
+
+.fmp-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--fmp-blue);
+}
+
+.fmp-progress[data-phase='scan'] span {
+  width: 42%;
+  transition: width 2s linear;
+}
+
+.fmp-progress[data-phase='search'] span {
+  width: 100%;
+  transition: width 1.8s linear;
+}
+
+.fmp-progress[data-phase='results'] span {
+  width: 100%;
+  background: var(--fmp-mint);
+}
+
+.fmp-faces {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.fmp-faces button {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--fmp-film);
+  border-radius: 2px;
+  background: var(--fmp-film);
+  opacity: 0.55;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s var(--fmp-ease);
+}
+
+.fmp-faces button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1);
+  transition: filter 0.25s ease;
+}
+
+.fmp-faces button:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.fmp-faces button[aria-selected='true'] {
+  opacity: 1;
+}
+
+.fmp-faces button[aria-selected='true'] img {
+  filter: none;
+}
+
+.fmp-faces-hint {
+  margin-left: 6px;
+  overflow: hidden;
+  color: var(--fmp-muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The app's similarity label, in its colors */
+.fmp-badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--fmp-green);
+  color: var(--fmp-white);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  animation: fmp-fade 0.4s ease 0.2s both;
+}
+
+.fmp-badge-good {
+  background: var(--fmp-orange);
+}
+
+.fmp-badge-fair {
+  background: var(--fmp-yellow);
+  color: var(--fmp-ink);
+}
+
+.fmp-badge-low {
+  background: var(--fmp-badge-red);
+}
+
+.fmp-site {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  animation: fmp-fade 0.4s ease 0.3s both;
+}
+
+.fmp-site svg {
+  flex-shrink: 0;
+  color: var(--fmp-muted);
+}
+
+.fmp-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--fmp-blue);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: fmp-fade 0.4s ease 0.4s both;
+}
+
+.fmp-cap-wait {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.fmp-cap-wait span {
+  display: block;
+  width: 46%;
+  height: 12px;
+  background: var(--fmp-table-2);
+}
+
+.fmp-cap-wait span:nth-child(2) {
+  width: 78%;
+  height: 14px;
+}
+
+.fmp-cap-wait span:nth-child(3) {
+  width: 58%;
+}
+
+.fmp-cell[data-state='searching'] .fmp-cap-wait span {
+  background: linear-gradient(90deg, var(--fmp-table-2) 30%, #e0e0da 50%, var(--fmp-table-2) 70%) 0 0 / 300% 100%;
+  animation: fmp-sweep 1.3s linear infinite;
+}
+
+.fmp-demo-note {
+  margin-top: 36px;
+  color: var(--fmp-muted);
+  font-size: 13px;
+}
+
+/* ---------- 14 · Why people look: loupes over a strip ---------- */
+
+.fmp-why {
+  --lens: 248px;
+}
+
+.fmp-why-stage {
+  position: relative;
+}
+
+.fmp-why-strip {
+  --fw: 150px;
+  --band-b: 20px;
+
+  position: absolute;
+  top: calc(var(--lens) / 2);
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-0.6deg);
+}
+
+.fmp-why-strip .fmp-edge {
+  display: none;
+}
+
+.fmp-why-list {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+}
+
+.fmp-why-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.fmp-lens {
+  position: relative;
+  width: var(--lens);
+  height: var(--lens);
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--fmp-film-3);
+  box-shadow:
+    0 0 0 7px var(--fmp-film),
+    0 0 0 9px rgba(255, 255, 255, 0.92),
+    0 34px 60px -22px rgba(18, 20, 23, 0.55);
+  transition: transform 0.5s var(--fmp-ease);
+}
+
+.fmp-lens img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    transform 0.8s var(--fmp-ease),
+    filter 0.5s ease;
+}
+
+.fmp-lens::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 0 -20px 40px -16px rgba(18, 20, 23, 0.45);
+}
+
+.fmp-why-item:hover .fmp-lens {
+  transform: translateY(-6px);
+}
+
+.fmp-why-item:hover .fmp-lens img {
+  transform: scale(1.07);
+}
+
+.fmp-why-text {
+  max-width: 320px;
+  margin-top: 44px;
+}
+
+.fmp-why-text h3,
+.fmp-print h3,
+.fmp-privacy-cell h3 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.fmp-why-text p,
+.fmp-print p {
+  margin-top: 10px;
+  color: var(--fmp-muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* ---------- 19A · How it works: the app's screens as prints, arrows between ---------- */
+
+.fmp-prints {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 56px;
+}
+
+.fmp-print {
+  position: relative;
+}
+
+.fmp-print-photo {
+  padding: 8px;
+  background: var(--fmp-white);
+  box-shadow:
+    0 1px 2px rgba(18, 20, 23, 0.1),
+    0 24px 44px -24px rgba(18, 20, 23, 0.5);
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.5s var(--fmp-ease);
+}
+
+.fmp-print:nth-child(1) {
+  --tilt: -1.4deg;
+}
+
+.fmp-print:nth-child(2) {
+  --tilt: 0.9deg;
+}
+
+.fmp-print:nth-child(3) {
+  --tilt: -0.6deg;
+}
+
+.fmp-print:nth-child(4) {
+  --tilt: 1.3deg;
+}
+
+.fmp-print:hover .fmp-print-photo {
+  transform: rotate(0deg) translateY(-6px);
+}
+
+.fmp-print-photo img {
+  width: 100%;
+  height: auto;
+}
+
+.fmp-print-no {
+  display: block;
+  margin-top: 26px;
+  color: var(--fmp-muted);
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmp-print-no i {
+  margin-left: 6px;
+  color: var(--fmp-red);
+  font-style: normal;
+}
+
+.fmp-print h3 {
+  margin-top: 6px;
+}
+
+.fmp-print-arrow {
+  z-index: 2;
+  top: 30%;
+  right: -66px;
+  width: 76px;
+}
+
+/* ---------- 23 · Privacy: a band of film ---------- */
+
+.fmp-privacy {
+  position: relative;
+  padding: 46px 0;
+  background: var(--fmp-film);
+  color: var(--fmp-white);
+}
+
+.fmp-privacy::before,
+.fmp-privacy::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 9px;
+  background: var(--fmp-perf-x) repeat-x 0 0 / 24px 9px;
+}
+
+.fmp-privacy::before {
+  top: 18px;
+}
+
+.fmp-privacy::after {
+  bottom: 18px;
+}
+
+.fmp-privacy-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fmp-privacy-cell {
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+  padding: 26px 28px 32px;
+  background: var(--fmp-film-2);
+}
+
+.fmp-privacy-cell p {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.fmp-privacy-cell h3 {
+  margin-top: 104px;
+}
+
+.fmp-privacy-no {
+  color: var(--fmp-edge-ink);
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmp-privacy-head {
+  justify-content: flex-end;
+  padding-left: 4px;
+  background: transparent;
+}
+
+.fmp-privacy-head .fmp-h2,
+.fmp-privacy-head .fmp-h2-text,
+.fmp-final-cta .fmp-h2-text {
+  display: block;
+}
+
+.fmp-privacy-head .fmp-fno {
+  display: block;
+  width: auto;
+  margin-bottom: 14px;
+  color: var(--fmp-edge-ink);
+}
+
+/* ---------- 27A · FAQ: a negative sleeve ---------- */
+
+.fmp-faq-sec .fmp-head {
+  margin-bottom: 48px;
+}
+
+.fmp-sleeve {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  max-width: 980px;
+  margin-left: var(--fmp-num);
+  border: 1px solid var(--fmp-line);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 40px 70px -50px rgba(18, 20, 23, 0.45);
+}
+
+.fmp-sleeve-holes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  padding: 36px 0;
+  border-right: 1px solid var(--fmp-line);
+}
+
+.fmp-sleeve-holes span {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--fmp-table);
+  box-shadow:
+    inset 0 1px 3px rgba(18, 20, 23, 0.32),
+    0 0 0 1px rgba(18, 20, 23, 0.1);
+}
+
+.fmp-pocket + .fmp-pocket {
+  border-top: 4px double var(--fmp-line-2);
+}
+
+.fmp-pocket summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 26px 22px 22px;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.fmp-pocket summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A strip of film waits in every pocket: its edge shows on hover, the answer is printed on it. */
+.fmp-pocket summary::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 0;
+  background: var(--fmp-film);
+  transition: height 0.25s var(--fmp-ease);
+}
+
+.fmp-pocket summary:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.fmp-pocket summary:hover::after,
+.fmp-pocket[open] summary::after {
+  height: 4px;
+}
+
+.fmp-pocket-no {
+  color: var(--fmp-muted-2);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmp-pocket-icon {
+  color: var(--fmp-muted);
+  transition:
+    transform 0.3s var(--fmp-ease),
+    color 0.2s ease;
+}
+
+.fmp-pocket[open] .fmp-pocket-icon {
+  color: var(--fmp-red);
+  transform: rotate(45deg);
+}
+
+.fmp-pocket-strip {
+  position: relative;
+  padding: 24px 26px 24px 74px;
+  background: var(--fmp-film);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.fmp-pocket-strip::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 0;
+  left: 0;
+  height: 6px;
+  background: var(--fmp-perf-x) repeat-x 0 0 / 15px 6px;
+  opacity: 0.5;
+}
+
+.fmp-pocket[open] .fmp-pocket-strip {
+  animation: fmp-slide 0.45s var(--fmp-ease) both;
+}
+
+@keyframes fmp-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- 36 · Your turn: the last sheet, one frame circled ---------- */
+
+.fmp-final {
+  padding: 120px 0 132px;
+  overflow: hidden;
+}
+
+.fmp-final-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: center;
+  gap: 88px;
+}
+
+.fmp-final-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-self: end;
+}
+
+.fmp-final-sheet .fmp-strip {
+  --fw: 120px;
+  --fg: 7px;
+  --band-t: 18px;
+  --band-b: 28px;
+  --hole-h: 6px;
+  --hole-pitch: 15px;
+}
+
+.fmp-final-sheet .fmp-strip:nth-child(1) {
+  transform: translateX(-10px) rotate(-0.3deg);
+}
+
+.fmp-final-sheet .fmp-strip:nth-child(3) {
+  transform: translateX(6px) rotate(0.25deg);
+}
+
+.fmp-final-sheet .fmp-edge {
+  font-size: 9px;
+}
+
+.fmp-final-sheet .fmp-frame-loop {
+  --draw-delay: 0.9s;
+  --gw: 2.4;
+}
+
+.fmp-develops .fmp-frame::after {
+  transition: opacity 1.1s ease-out;
+  transition-delay: calc(var(--n) * 40ms);
+}
+
+.fmp-develops:not([data-shown]) .fmp-frame::after {
+  opacity: 0.9;
+}
+
+.fmp-develops .fmp-shot-face {
+  opacity: 0;
+  transition: opacity 0.8s ease 0.9s;
+}
+
+.fmp-develops[data-shown] .fmp-shot-face {
+  opacity: 1;
+}
+
+.fmp-final-arrow {
+  --draw-delay: 1.5s;
+
+  z-index: 2;
+  top: calc(50% - 14px);
+  left: calc((100% - 88px) * 7 / 12 - 6px);
+  width: 96px;
+}
+
+.fmp-final-arrow-down {
+  display: none;
+}
+
+.fmp-final-cta .fmp-h2 {
+  display: block;
+}
+
+.fmp-final-cta .fmp-fno {
+  display: block;
+  width: auto;
+  margin-bottom: 16px;
+}
+
+.fmp-final-cta > p:not([class]) {
+  max-width: 26em;
+  margin-top: 18px;
+  color: var(--fmp-muted);
+  font-size: 18px;
+}
+
+.fmp-final-cta .fmp-price {
+  margin: 28px 0 14px;
+}
+
+/* ---------- Footer ---------- */
+
+.fmp-footer {
+  position: relative;
+  padding: 60px 0 52px;
+  background: var(--fmp-film);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.fmp-footer::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 0;
+  left: 0;
+  height: 8px;
+  background: var(--fmp-perf-x) repeat-x 0 0 / 20px 8px;
+  opacity: 0.85;
+}
+
+.fmp-footer-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.fmp-footer-row > span {
+  max-width: 640px;
+}
+
+.fmp-footer strong {
+  color: var(--fmp-white);
+  font-weight: 500;
+}
+
+.fmp-footer nav {
+  display: flex;
+  flex: none;
+  gap: 22px;
+}
+
+.fmp-footer a {
+  border-radius: 2px;
+  color: var(--fmp-white);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.fmp-footer a:hover {
+  text-decoration-color: var(--fmp-white);
+}
+
+/* ---------- Dock (phones and tablets) ---------- */
+
+.fmp-dock {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px calc(14px + env(safe-area-inset-bottom));
+  background: var(--fmp-film);
+  color: var(--fmp-white);
+  transform: translateY(110%);
+  transition: transform 0.45s var(--fmp-ease);
+}
+
+.fmp-dock::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 0;
+  left: 0;
+  height: 6px;
+  background: var(--fmp-perf-x) repeat-x 0 0 / 15px 6px;
+  opacity: 0.55;
+}
+
+.fmp-dock.is-visible {
+  transform: none;
+}
+
+.fmp-dock img {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 9px;
+}
+
+.fmp-dock-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+
+.fmp-dock-text strong {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.fmp-dock-text small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fmp-dock .fmp-cta {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.fmp-dock .fmp-cta:focus-visible {
+  outline-color: var(--fmp-white);
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 1080px) {
+  .fmp {
+    --fmp-num: 96px;
+  }
+
+  .fmp-dock {
+    display: flex;
+  }
+
+  .fmp-footer {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .fmp-why {
+    --lens: 176px;
+  }
+
+  .fmp-why-list {
+    gap: 28px;
+  }
+
+  .fmp-prints {
+    gap: 36px;
+  }
+
+  .fmp-print-arrow {
+    right: -48px;
+    width: 58px;
+  }
+
+  .fmp-privacy-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fmp-privacy-head {
+    grid-column: 1 / -1;
+    min-height: 0;
+    padding: 20px 4px 28px;
+  }
+
+  .fmp-final-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 56px;
+  }
+
+  .fmp-final-sheet {
+    justify-self: stretch;
+    align-items: flex-end;
+    margin-right: calc(var(--fmp-gutter) * -1 + 2px);
+  }
+
+  .fmp-final-arrow {
+    display: none;
+  }
+
+  .fmp-final-arrow-down {
+    display: block;
+    z-index: 2;
+    top: auto;
+    right: 14px;
+    bottom: calc(100% - 12px);
+    width: 70px;
+  }
+
+  .fmp-final-cta {
+    position: relative;
+    justify-self: end;
+    width: 100%;
+    max-width: 520px;
+  }
+}
+
+/* Hero, demo and FAQ change shape below this width. */
+@media (max-width: 860px) {
+  .fmp {
+    --fmp-num: 0px;
+  }
+
+  .fmp-h2 {
+    display: block;
+  }
+
+  .fmp-fno {
+    display: inline;
+    width: auto;
+    margin-right: 12px;
+    font-size: 16px;
+    vertical-align: 0.12em;
+  }
+
+  .fmp-head-lead {
+    margin-left: 0;
+  }
+
+  .fmp-run::before,
+  .fmp-run::after {
+    display: none;
+  }
+
+  .fmp-run {
+    justify-content: flex-end;
+  }
+
+  .fmp-counter-name {
+    display: none;
+  }
+
+  .fmp-hero .fmp-strip {
+    --fw: 116px;
+    --fg: 6px;
+    --band-t: 15px;
+    --band-b: 17px;
+    --hole-h: 5px;
+    --hole-pitch: 13px;
+  }
+
+  .fmp-hero .fmp-strip::after {
+    bottom: 6px;
+  }
+
+  .fmp-hero .fmp-edge {
+    display: none;
+  }
+
+  .fmp-hero .fmp-frame-loop {
+    --gw: 2.6;
+  }
+
+  .fmp-strips > .fmp-strip:nth-child(n + 3) .fmp-frame-loop {
+    display: none;
+  }
+
+  .fmp-sheet {
+    position: relative;
+    height: 312px;
+  }
+
+  .fmp-strips {
+    top: 16px;
+    right: -40px;
+    left: auto;
+    gap: 10px;
+    transform: none;
+  }
+
+  .fmp-loupe {
+    --lr: 62px;
+    --lm: 1.9;
+
+    box-shadow:
+      0 0 0 5px var(--fmp-film),
+      0 0 0 7px rgba(255, 255, 255, 0.92),
+      0 20px 34px -14px rgba(18, 20, 23, 0.55);
+  }
+
+  .fmp-hero-inner {
+    display: block;
+    min-height: 0;
+    margin-top: -96px;
+    padding-block: 0 64px;
+  }
+
+  .fmp-card {
+    width: 100%;
+    max-width: 640px;
+    padding: 30px 26px 0;
+  }
+
+  .fmp-proof {
+    margin-inline: -26px;
+    padding-inline: 26px;
+  }
+
+  .fmp-sec {
+    padding: 96px 0;
+  }
+
+  .fmp-head {
+    margin-bottom: 36px;
+  }
+
+  .fmp-faces-hint {
+    display: none;
+  }
+
+  .fmp-status {
+    font-size: 18px;
+  }
+
+  /* How: the prints become a swipe row. */
+  .fmp-prints {
+    grid-auto-columns: min(54%, 230px);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    gap: 22px;
+    margin-inline: calc(var(--fmp-gutter) * -1);
+    padding: 12px var(--fmp-gutter) 8px;
+    overflow-x: auto;
+    scroll-padding-inline: var(--fmp-gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .fmp-prints::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fmp-print {
+    scroll-snap-align: start;
+  }
+
+  .fmp-print-arrow {
+    display: none;
+  }
+
+  .fmp-print h3 {
+    font-size: 20px;
+  }
+
+  .fmp-print p {
+    font-size: 15px;
+  }
+
+  /* Privacy: the band turns into a vertical strip. */
+  .fmp-privacy {
+    padding: 0;
+  }
+
+  .fmp-privacy::before,
+  .fmp-privacy::after {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 8px;
+    width: 8px;
+    height: auto;
+    background: var(--fmp-perf-y) repeat-y 0 0 / 8px 20px;
+  }
+
+  .fmp-privacy::after {
+    right: 8px;
+    left: auto;
+  }
+
+  .fmp-privacy-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-block: 28px;
+    padding-inline: 32px;
+  }
+
+  .fmp-privacy-cell {
+    min-height: 0;
+    padding: 22px 22px 24px;
+  }
+
+  .fmp-privacy-cell h3 {
+    margin-top: 28px;
+  }
+
+  .fmp-privacy-head {
+    padding: 36px 2px 24px;
+  }
+
+  .fmp-privacy-head .fmp-fno {
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* FAQ: the sleeve loses its binder margin. */
+  .fmp-sleeve {
+    grid-template-columns: 1fr;
+    margin-left: 0;
+  }
+
+  .fmp-sleeve-holes {
+    flex-direction: row;
+    justify-content: space-evenly;
+    padding: 12px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--fmp-line);
+  }
+
+  .fmp-sleeve-holes span {
+    width: 13px;
+    height: 13px;
+  }
+
+  .fmp-pocket summary {
+    grid-template-columns: 26px minmax(0, 1fr) 20px;
+    gap: 10px;
+    padding: 19px 18px 19px 16px;
+    font-size: 17px;
+  }
+
+  .fmp-pocket-strip {
+    padding: 22px 18px 20px 52px;
+    font-size: 16px;
+  }
+
+  /* Final: the sheet bleeds off the right edge; the arrow points down to the button. */
+  .fmp-final {
+    padding: 88px 0 104px;
+  }
+
+  .fmp-final-grid {
+    gap: 64px;
+  }
+
+  .fmp-final-sheet .fmp-strip {
+    --fw: 100px;
+    --fg: 6px;
+    --band-t: 15px;
+    --band-b: 17px;
+    --hole-h: 5px;
+    --hole-pitch: 13px;
+  }
+
+  .fmp-final-sheet .fmp-edge {
+    display: none;
+  }
+
+  .fmp-final-sheet .fmp-frame-loop {
+    --gw: 3.2;
+  }
+
+}
+
+@media (max-width: 640px) {
+  .fmp {
+    --fmp-gutter: 20px;
+  }
+
+  /* Why: a strip runs down the left, a loupe on it for each reason. */
+  .fmp-why {
+    --lens: 120px;
+  }
+
+  .fmp-why-strip {
+    display: none;
+  }
+
+  .fmp-why-list {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .fmp-why-list::before {
+    content: '';
+    position: absolute;
+    top: -28px;
+    bottom: -28px;
+    left: calc(var(--fmp-gutter) + var(--lens) / 2 - 38px);
+    width: 76px;
+    background:
+      var(--fmp-perf-y) repeat-y 6px 0 / 7px 17px,
+      var(--fmp-perf-y) repeat-y calc(100% - 6px) 0 / 7px 17px,
+      var(--fmp-film);
+  }
+
+  .fmp-why-item {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    text-align: left;
+  }
+
+  .fmp-lens {
+    box-shadow:
+      0 0 0 5px var(--fmp-film),
+      0 0 0 7px rgba(255, 255, 255, 0.92),
+      0 20px 34px -16px rgba(18, 20, 23, 0.55);
+  }
+
+  .fmp-why-text {
+    margin-top: 0;
+  }
+
+  .fmp-why-text h3 {
+    font-size: 20px;
+  }
+
+  .fmp-why-text p {
+    margin-top: 6px;
+    font-size: 15px;
+  }
+
+
+  /* The demo strip runs down the left; captions sit beside each frame. */
+  .fmp-roll {
+    grid-template-columns: 1fr;
+  }
+
+  .fmp-cell {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .fmp-cell-film,
+  .fmp-cell:first-child .fmp-cell-film,
+  .fmp-cell:last-child .fmp-cell-film {
+    width: 52%;
+    max-width: 300px;
+    flex: none;
+    padding: 5px 20px;
+  }
+
+  .fmp-cell:first-child .fmp-cell-film {
+    padding-top: 30px;
+  }
+
+  .fmp-cell:last-child .fmp-cell-film {
+    padding-bottom: 14px;
+  }
+
+  .fmp-cell-film::before,
+  .fmp-cell-film::after {
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 6px;
+    width: 7px;
+    height: auto;
+    background: var(--fmp-perf-y) repeat-y 0 0 / 7px 17px;
+  }
+
+  .fmp-cell-film::after {
+    right: 6px;
+    left: auto;
+  }
+
+  .fmp-cell-print {
+    display: none;
+  }
+
+  .fmp-cell:first-child .fmp-cell-print {
+    top: 9px;
+    bottom: auto;
+    left: 20px;
+    display: block;
+  }
+
+  .fmp-cell-loop {
+    --gw: 2.4;
+
+    top: -4px;
+    left: 9px;
+    width: calc(100% - 18px);
+    height: calc(100% + 8px);
+  }
+
+  .fmp-cell:first-child .fmp-cell-loop {
+    top: 21px;
+    height: calc(100% - 17px);
+  }
+
+  .fmp-cell-cap,
+  .fmp-cell:first-child .fmp-cell-cap {
+    justify-content: center;
+    gap: 7px;
+    padding: 12px 0 12px 16px;
+  }
+
+  .fmp-cell:first-child .fmp-cell-cap {
+    padding-top: 30px;
+  }
+
+  .fmp-status {
+    font-size: 17px;
+  }
+
+  .fmp-faces button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .fmp-faces-hint {
+    display: none;
+  }
+
+  .fmp-site {
+    font-size: 15px;
+  }
+
+  .fmp-badge {
+    font-size: 12px;
+  }
+
+  .fmp-source {
+    font-size: 13px;
+  }
+
+  .fmp-demo-note {
+    margin-top: 24px;
+  }
+
+
+  .fmp-ribbon {
+    gap: 8px;
+    padding-inline: 12px;
+    font-size: 13px;
+  }
+
+  .fmp-header-row {
+    gap: 12px;
+    height: 62px;
+  }
+
+  .fmp-identity {
+    font-size: 17px;
+  }
+
+  .fmp-identity img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .fmp-header-cta {
+    height: 38px;
+    padding: 0 13px;
+    font-size: 14px;
+  }
+
+  .fmp-h1 {
+    font-size: clamp(31px, 9.6vw, 44px);
+  }
+
+  .fmp-lead {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+
+  .fmp-offer {
+    margin-top: 24px;
+  }
+
+  .fmp-offer .fmp-cta {
+    width: 100%;
+  }
+
+  .fmp-proof {
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 24px;
+    padding-block: 14px 16px;
+  }
+
+  .fmp-h2 {
+    font-size: clamp(28px, 8.4vw, 36px);
+  }
+
+  .fmp-fno {
+    font-size: 14px;
+  }
+
+  .fmp-head-lead {
+    margin-top: 14px;
+    font-size: 16px;
+  }
+
+  .fmp-final-cta .fmp-cta {
+    width: 100%;
+  }
+
+  .fmp-final-cta > p:not([class]) {
+    font-size: 16px;
+  }
+
+  .fmp-footer-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 400px) {
+  .fmp {
+    --fmp-gutter: 16px;
+  }
+
+  .fmp-counter small {
+    display: none;
+  }
+
+  .fmp-card {
+    padding: 26px 20px 0;
+  }
+
+  .fmp-proof {
+    margin-inline: -20px;
+    padding-inline: 20px;
+  }
+
+  .fmp-cell-film,
+  .fmp-cell:first-child .fmp-cell-film,
+  .fmp-cell:last-child .fmp-cell-film {
+    width: 50%;
+    padding-inline: 17px;
+  }
+
+  .fmp-cell-film::before {
+    left: 5px;
+    width: 6px;
+    background-size: 6px 15px;
+  }
+
+  .fmp-cell-film::after {
+    right: 5px;
+    width: 6px;
+    background-size: 6px 15px;
+  }
+
+  .fmp-cell-cap,
+  .fmp-cell:first-child .fmp-cell-cap {
+    padding-left: 12px;
+  }
+
+  .fmp-faces button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .fmp-dock-text small {
+    display: none;
+  }
+
+  .fmp-cell-print-more {
+    display: none;
+  }
+}
+
+@media (max-width: 340px) {
+  .fmp-ribbon p {
+    white-space: normal;
+  }
+
+  .fmp-strips {
+    right: -110px;
+  }
+
+  .fmp-identity span {
+    display: none;
+  }
+
+  .fmp-counter {
+    display: none;
+  }
+
+  .fmp-dock img {
+    display: none;
+  }
+
+  .fmp-cell-film,
+  .fmp-cell:first-child .fmp-cell-film,
+  .fmp-cell:last-child .fmp-cell-film {
+    width: 46%;
+  }
+
+  .fmp-site {
+    font-size: 14px;
+  }
+
+  .fmp-source svg {
+    display: none;
+  }
+
+  .fmp-badge {
+    font-size: 11px;
+  }
+
+  .fmp-pocket summary {
+    grid-template-columns: minmax(0, 1fr) 20px;
+  }
+
+  .fmp-pocket-no {
+    display: none;
+  }
+
+  .fmp-pocket-strip {
+    padding-left: 18px;
+  }
+}
+
+/* No motion: everything in its final place, marks already drawn. */
+@media (prefers-reduced-motion: reduce) {
+  .fmp *,
+  .fmp *::before,
+  .fmp *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .fmp-develops .fmp-frame::after {
+    opacity: 0;
+  }
+
+  .fmp-develops .fmp-shot-face {
+    opacity: 1;
+  }
+
+  .fmp-sheet .fmp-loupe {
+    opacity: 1;
+  }
+}

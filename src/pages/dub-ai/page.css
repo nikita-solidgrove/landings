@@ -1,0 +1,2450 @@
+/*
+ * Dub AI — cinema with subtitles. One film, many languages: a letterboxed opening shot whose subtitle
+ * is the headline, scene slates instead of section labels, an edit bay, a filmstrip, one paper
+ * storyboard, an .srt-style FAQ and end credits. Black, subtitle yellow, the icon's blue for buttons,
+ * paper for the interlude. Syne for display, DM Sans for text and subtitles.
+ */
+.dub {
+  --ink: #0b0b10;
+  --ink-2: #121218;
+  --ink-3: #1c1c24;
+  --film: #19181d;
+  --yellow: #ffd60a;
+  --blue: #3a44f5;
+  --blue-hi: #525bff;
+  --blue-lo: #2a33d6;
+  --voice: #8a91ff;
+  --rec: #ff453a;
+  --paper: #f3f1ea;
+  --white: #ffffff;
+  --text-2: rgba(255, 255, 255, 0.72);
+  --text-3: rgba(255, 255, 255, 0.5);
+  --line: rgba(255, 255, 255, 0.14);
+  --paper-text-2: #55545e;
+  --display: 'Syne Variable', 'DM Sans Variable', system-ui, sans-serif;
+  --sans: 'DM Sans Variable', system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP',
+    'Kohinoor Devanagari', 'Noto Sans Devanagari', sans-serif;
+  /* Burned-in subtitle legibility: a tight dark edge, not a glow. */
+  --sub-shadow: 0 0 2px rgba(0, 0, 0, 0.95), 0 1px 2px rgba(0, 0, 0, 0.9), 0 2px 14px rgba(0, 0, 0, 0.5);
+  --ease: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --snap: cubic-bezier(0.75, 0, 0.2, 1);
+  --gutter: 40px;
+  --header-h: 68px;
+  --section: 136px;
+  --edge: max(var(--gutter), calc((100% - 1200px) / 2));
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* Film grain over the whole page, never on top of interaction. */
+.dub::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.dub *,
+.dub *::before,
+.dub *::after {
+  box-sizing: border-box;
+}
+
+/* Resets without specificity, so component classes always win. */
+:where(.dub) :where(h1, h2, h3, p, ol, ul, dl, dd, figure) {
+  margin: 0;
+}
+
+:where(.dub) :where(button) {
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(.dub) :where(a) {
+  color: inherit;
+}
+
+:where(.dub) :where(img) {
+  display: block;
+}
+
+.dub :where(button, a):focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+}
+
+.dub-wrap {
+  width: 100%;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.dub-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes dub-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dub-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes dub-blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* ---------- Buttons: the icon's blue, hard-edged, a play mark ---------- */
+
+.dub-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 0 30px 0 26px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--blue);
+  color: var(--white);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.24);
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.dub-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.35s var(--ease);
+}
+
+.dub-btn:hover {
+  background: var(--blue-hi);
+}
+
+.dub-btn:hover svg {
+  transform: scale(1.2);
+}
+
+.dub-btn:active {
+  background: var(--blue-lo);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+  transform: translateY(1px);
+}
+
+.dub-btn-small {
+  min-height: 46px;
+  padding: 0 18px 0 16px;
+  gap: 9px;
+  font-size: 15px;
+}
+
+.dub-btn-header {
+  min-height: 40px;
+  padding: 0 16px;
+  gap: 9px;
+  font-size: 14px;
+}
+
+.dub-price {
+  color: var(--text-2);
+  font-size: 15px;
+}
+
+.dub-price strong {
+  color: var(--white);
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.dub-price s {
+  margin: 0 6px;
+  color: var(--text-3);
+}
+
+.dub-terms {
+  color: var(--text-3);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* ---------- Creator ribbon ---------- */
+
+.dub-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 7px var(--gutter);
+  border-bottom: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.dub-ribbon p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dub-ribbon strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.dub-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--yellow);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.dub-ribbon-deal {
+  flex-shrink: 0;
+  color: var(--yellow);
+  font-weight: 700;
+}
+
+/* ---------- Header: transparent on black, a running camera timecode ---------- */
+
+/*
+ * The blur zone reaches past the bar, so content fades into it instead of being cut at a line.
+ * The header itself stays free of filter/opacity/backdrop-filter (see ProgressiveBlur).
+ */
+.dub-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  color: var(--white);
+  transition: color 0.3s ease;
+}
+
+.dub-header-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100% + 40px);
+  pointer-events: none;
+}
+
+.dub-header-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.dub-header-tint-dark {
+  background: linear-gradient(to bottom, rgba(11, 11, 16, 0.9) 0%, rgba(11, 11, 16, 0.55) 52%, rgba(11, 11, 16, 0) 100%);
+}
+
+.dub-header-tint-light {
+  background: linear-gradient(
+    to bottom,
+    rgba(243, 241, 234, 0.94) 0%,
+    rgba(243, 241, 234, 0.62) 52%,
+    rgba(243, 241, 234, 0) 100%
+  );
+}
+
+.dub-header[data-stuck='true'][data-tone='dark'] .dub-header-tint-dark,
+.dub-header[data-stuck='true'][data-tone='light'] .dub-header-tint-light {
+  opacity: 1;
+}
+
+.dub-header[data-tone='light'] {
+  color: var(--ink);
+}
+
+.dub-header-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  height: var(--header-h);
+}
+
+.dub-brand {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.dub-brand img {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+}
+
+.dub-header-tc {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dub-rec {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--rec);
+  animation: dub-blink 1.6s steps(1) infinite;
+}
+
+.dub-tc {
+  min-width: 7.6em;
+}
+
+.dub-header-scene {
+  padding-left: 10px;
+  border-left: 1px solid currentColor;
+  opacity: 0.62;
+}
+
+.dub-btn-header {
+  justify-self: end;
+}
+
+/* ---------- Opening shot ---------- */
+
+.dub-hero {
+  margin-top: calc(var(--header-h) * -1);
+  padding-top: var(--header-h);
+  background: var(--ink);
+}
+
+.dub-shot {
+  --shot-h: clamp(340px, calc(100svh - 372px), 41.84vw);
+  position: relative;
+  height: var(--shot-h);
+  overflow: hidden;
+  background: var(--ink-3);
+  animation: dub-open 1.15s var(--snap) 0.1s both;
+}
+
+/* The letterbox opens from a line, like a projector catching the frame. */
+@keyframes dub-open {
+  from {
+    clip-path: inset(49.6% 0 49.6% 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.dub-shot-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: 51% 49%;
+  animation: dub-push 24s ease-in-out 1.2s infinite alternate;
+}
+
+/* A slow push-in toward the mouth, so the lip-sync marks stay on it. */
+@keyframes dub-push {
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.dub-shot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0) 40%),
+    radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.32) 100%);
+  pointer-events: none;
+}
+
+.dub-shot-top,
+.dub-player-top {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: var(--sub-shadow);
+  white-space: nowrap;
+}
+
+.dub-shot-top {
+  padding: 18px var(--edge);
+  animation: dub-fade 0.6s ease 1.1s both;
+}
+
+.dub-shot-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dub-shot-track b {
+  font-weight: 700;
+}
+
+.dub-track-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transition: background-color 0.3s ease;
+}
+
+.dub-track-dot.is-dub {
+  background: var(--yellow);
+}
+
+/* Lip-sync corner marks, drawn with gradients, sized to the mouth of the uncropped photo. */
+.dub-shot-lips,
+.dub-lips {
+  --c: var(--yellow);
+  --arm: 16px;
+  position: absolute;
+  z-index: 1;
+  translate: -50% -50%;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 2px var(--arm) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 2px var(--arm) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px var(--arm) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--arm) 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px var(--arm) no-repeat;
+  opacity: 0.5;
+  transition: opacity 0.4s ease;
+}
+
+.dub-shot-lips {
+  top: 49.1%;
+  left: 51.1%;
+  width: calc(max(100%, var(--shot-h) * 1.7778) * 0.088);
+  aspect-ratio: 1.7;
+  animation: dub-fade 0.6s ease 1.2s both;
+}
+
+.dub-shot-lips span {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  color: var(--yellow);
+  font-size: 12px;
+  font-weight: 600;
+  text-shadow: var(--sub-shadow);
+  white-space: nowrap;
+}
+
+.dub-shot-lips.is-on,
+.dub-lips.is-speaking {
+  opacity: 1;
+}
+
+.dub-shot-lips.is-on {
+  animation: dub-lips 0.42s ease-in-out infinite alternate;
+}
+
+@keyframes dub-lips {
+  to {
+    scale: 1.06;
+  }
+}
+
+/* The headline, set as a real burned-in subtitle. */
+.dub-subline {
+  position: absolute;
+  z-index: 2;
+  bottom: clamp(16px, 6%, 48px);
+  left: 50%;
+  width: min(1100px, calc(100% - var(--gutter) * 2));
+  translate: -50% 0;
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: clamp(26px, 4.05vw, 60px);
+  font-weight: 600;
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-shadow: var(--sub-shadow);
+  text-wrap: balance;
+  animation: dub-fade 0.5s ease 0.85s both;
+}
+
+.dub-subline-text {
+  display: block;
+  animation: dub-fade 0.28s ease-out both;
+}
+
+.dub-subline-part {
+  display: inline-block;
+}
+
+/* Chapter bar under the frame: a playhead runs through the headline's languages. */
+.dub-scrub {
+  position: relative;
+  padding-top: 22px;
+  animation: dub-fade 0.8s ease 0.7s both;
+}
+
+.dub-scrub-bar {
+  position: absolute;
+  top: 22px;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.dub-scrub-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--p, 0) * 100%);
+  background: var(--yellow);
+}
+
+.dub-scrub-fill::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: -1px;
+  width: 2px;
+  height: 14px;
+  background: var(--yellow);
+}
+
+.dub-chapters {
+  display: flex;
+}
+
+.dub-chapter {
+  display: flex;
+  flex: 1 1 0;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px 10px 6px;
+  border: 0;
+  background: transparent;
+  box-shadow: inset 1px 0 0 var(--line);
+  color: var(--text-3);
+  font-size: 13px;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.dub-chapter b {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.dub-chapter span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dub-chapter:hover,
+.dub-chapter:hover b {
+  color: var(--white);
+}
+
+.dub-chapter[aria-pressed='true'] {
+  color: var(--white);
+}
+
+.dub-chapter[aria-pressed='true'] b {
+  color: var(--yellow);
+}
+
+.dub-chapter:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Offer under the frame. */
+.dub-hero-offer {
+  display: grid;
+  grid-template-areas:
+    'lead buy'
+    'proof buy';
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
+  gap: 0 64px;
+  padding-top: 34px;
+}
+
+.dub-lead {
+  grid-area: lead;
+  max-width: 34em;
+  animation: dub-rise 0.8s var(--ease) 0.45s both;
+  color: var(--text-2);
+  font-size: 19px;
+  line-height: 1.5;
+}
+
+.dub-proof {
+  grid-area: proof;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 6px 22px;
+  margin-top: 18px;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dub-proof li {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dub-proof li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  background: var(--yellow);
+}
+
+.dub-hero-buy {
+  grid-area: buy;
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 12px;
+  animation: dub-rise 0.8s var(--ease) 0.55s both;
+}
+
+.dub-proof {
+  animation: dub-rise 0.8s var(--ease) 0.6s both;
+}
+
+.dub-hero-buy .dub-terms {
+  max-width: 30em;
+}
+
+/* ---------- Sections and the scene-slate heading ---------- */
+
+.dub-section {
+  padding: var(--section) 0;
+}
+
+.dub-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 32px;
+  max-width: 1000px;
+  margin-bottom: 64px;
+}
+
+/* A clapperboard slate: the clapstick snaps shut when the heading arrives. */
+.dub-slate {
+  --c: var(--white);
+  --bg: var(--ink);
+  position: relative;
+  display: block;
+  width: 112px;
+  margin-top: 4px;
+  padding-top: 17px;
+}
+
+.dub-slate-stick {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 15px;
+  border: 1.5px solid var(--c);
+  background: repeating-linear-gradient(-55deg, var(--c) 0 8px, var(--bg) 8px 16px);
+  transform: rotate(-16deg);
+  transform-origin: 0.75px calc(100% - 0.75px);
+  transition: transform 0.42s var(--snap) 0.3s;
+}
+
+.dub-head[data-shown] .dub-slate-stick {
+  transform: none;
+}
+
+.dub-slate-board {
+  display: grid;
+  border: 1.5px solid var(--c);
+  background: var(--bg);
+  color: var(--c);
+}
+
+.dub-slate-no {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 9px 10px 7px;
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.dub-slate-no small {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+
+.dub-slate-name {
+  padding: 5px 10px 6px;
+  overflow: hidden;
+  border-top: 1px solid var(--c);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dub-title {
+  font-family: var(--display);
+  font-size: clamp(34px, 4.1vw, 58px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.dub-head-lead {
+  max-width: 36em;
+  margin-top: 20px;
+  color: var(--text-2);
+  font-size: 18px;
+}
+
+/* ---------- Sc. 01: the edit bay ---------- */
+
+.dub-bay {
+  display: grid;
+  grid-template-areas:
+    'monitor langs'
+    'monitor timeline'
+    'monitor notes';
+  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  align-items: start;
+  gap: 28px 56px;
+}
+
+.dub-monitor {
+  grid-area: monitor;
+  min-width: 0;
+}
+
+.dub-player {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--ink-3);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.dub-player-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dub-player-top {
+  padding: 14px;
+  font-size: 12px;
+}
+
+.dub-lips {
+  --arm: 13px;
+  top: 50%;
+  left: 54.5%;
+  width: 30%;
+  height: 12%;
+}
+
+.dub-lips.is-speaking {
+  animation: dub-lips 0.4s ease-in-out infinite alternate;
+}
+
+.dub-player-sub {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 28px;
+  left: 12px;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  text-shadow: var(--sub-shadow);
+  animation: dub-fade 0.22s ease-out;
+}
+
+/* Words appear as they are spoken, like live subtitles; the current one in yellow. */
+.dub-word {
+  visibility: hidden;
+}
+
+.dub-word.is-said,
+.dub-word.is-now {
+  visibility: visible;
+}
+
+.dub-word.is-now {
+  color: var(--yellow);
+}
+
+.dub-processing {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 24px;
+  left: 12px;
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  border-radius: 2px;
+  background: rgba(11, 11, 16, 0.86);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dub-processing-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.dub-processing-bar span {
+  display: block;
+  height: 100%;
+  background: var(--yellow);
+  transition: width 0.075s linear;
+}
+
+/* An iOS notification sliding in at the top of the clip. */
+.dub-toast {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  right: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 10px;
+  border-radius: 18px;
+  background: rgba(246, 246, 248, 0.94);
+  color: var(--ink);
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  font-size: 13px;
+  line-height: 1.3;
+  animation: dub-toast 2.6s var(--ease) both;
+}
+
+.dub-toast img {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+
+.dub-toast > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dub-toast-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dub-toast-head small {
+  color: #6b6a73;
+  font-size: 12px;
+}
+
+@keyframes dub-toast {
+  0% {
+    opacity: 0;
+    transform: translateY(-120%);
+  }
+
+  14%,
+  84% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-30%);
+  }
+}
+
+.dub-transport {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dub-transport-name {
+  overflow: hidden;
+  color: var(--white);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dub-play {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--white);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.dub-play:hover {
+  border-color: var(--white);
+  background: var(--white);
+  color: var(--ink);
+}
+
+.dub-play:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* Audio-track picker. */
+.dub-langs {
+  grid-area: langs;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border: 1px solid var(--line);
+}
+
+.dub-lang {
+  position: relative;
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  padding: 11px 12px 13px;
+  overflow: hidden;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-2);
+  text-align: left;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.dub-lang:first-child {
+  border-left: 0;
+}
+
+.dub-lang b {
+  color: var(--white);
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.15;
+  transition: color 0.2s ease;
+}
+
+.dub-lang span {
+  overflow: hidden;
+  font-size: 12.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dub-lang:hover {
+  background: var(--ink-3);
+  color: var(--white);
+}
+
+.dub-lang[aria-pressed='true'] {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.dub-lang[aria-pressed='true'] b {
+  color: var(--ink);
+}
+
+.dub-lang:focus-visible {
+  outline-offset: -3px;
+}
+
+.dub-lang[aria-pressed='true']:focus-visible {
+  outline-color: var(--ink);
+}
+
+.dub-lang-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--ink);
+  transition: width 0.4s linear;
+}
+
+/* Timeline: the tracks Dub AI rewrites, under one playhead. */
+.dub-timeline {
+  --name: 128px;
+  grid-area: timeline;
+  position: relative;
+  display: grid;
+  border: 1px solid var(--line);
+  background: var(--ink-2);
+}
+
+.dub-tl-row {
+  display: grid;
+  grid-template-columns: var(--name) minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+}
+
+.dub-tl-row:first-child {
+  border-top: 0;
+}
+
+.dub-tl-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 14px;
+  overflow: hidden;
+  border-right: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dub-tl-name::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  background: var(--text-3);
+}
+
+.dub-tl-name.is-voice::before {
+  background: var(--voice);
+}
+
+.dub-tl-name.is-lips::before {
+  background: var(--white);
+}
+
+.dub-tl-name.is-subs::before {
+  background: var(--yellow);
+}
+
+.dub-tl-ruler .dub-tl-name::before {
+  display: none;
+}
+
+.dub-tl-lane {
+  position: relative;
+  min-width: 0;
+  padding: 8px 12px;
+}
+
+.dub-tl-ruler .dub-tl-lane {
+  height: 30px;
+  padding: 0;
+}
+
+.dub-tl-ticks {
+  position: absolute;
+  inset: 0 12px;
+}
+
+.dub-tl-ticks span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 5px;
+  border-left: 1px solid var(--line);
+  color: var(--text-3);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dub-tl-render {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  height: 3px;
+  background: rgba(255, 214, 10, 0.2);
+}
+
+.dub-tl-render span {
+  display: block;
+  height: 100%;
+  background: var(--yellow);
+  transition: width 0.075s linear;
+}
+
+.dub-thumbs {
+  display: flex;
+  gap: 2px;
+  height: 56px;
+  padding-block: 6px;
+}
+
+.dub-thumbs img {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72;
+}
+
+.dub-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+}
+
+.dub-wave i {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--h) * 100%);
+  background: rgba(138, 145, 255, 0.3);
+  transition: background-color 0.3s ease;
+}
+
+.dub-wave i.is-played {
+  background: var(--voice);
+}
+
+.dub-wave.is-muted i {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.dub-wave.is-live i.is-played {
+  animation: dub-bounce 0.45s ease-in-out infinite alternate;
+}
+
+.dub-wave.is-live i:nth-child(3n) {
+  animation-delay: -0.15s;
+}
+
+.dub-wave.is-live i:nth-child(3n + 1) {
+  animation-delay: -0.3s;
+}
+
+@keyframes dub-bounce {
+  to {
+    transform: scaleY(0.55);
+  }
+}
+
+.dub-mouths {
+  display: flex;
+  gap: 6px;
+  height: 66px;
+  padding-block: 7px;
+}
+
+.dub-mouth {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--ink-3);
+  transition: box-shadow 0.2s ease;
+}
+
+/* Zoom into the mouth: it sits at 54.5% / 50% of the 9:16 frame. */
+.dub-mouth img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--z, 240%);
+  max-width: none;
+  height: auto;
+  translate: -54.5% -50%;
+  filter: grayscale(1) brightness(0.75);
+  transition: filter 0.3s ease;
+}
+
+.dub-mouth.is-said img,
+.dub-mouth.is-now img {
+  filter: none;
+}
+
+.dub-mouth.is-now {
+  box-shadow: inset 0 0 0 2px var(--white);
+}
+
+.dub-clips {
+  display: flex;
+  gap: 3px;
+}
+
+.dub-clips span {
+  flex-basis: 0;
+  min-width: 0;
+  padding: 7px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 214, 10, 0.45);
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.dub-clips span.is-now {
+  border-color: var(--yellow);
+  background: rgba(255, 214, 10, 0.16);
+  color: var(--white);
+}
+
+.dub-clips span.is-said {
+  border-color: var(--yellow);
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.dub-tl-head {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--name) + 12px + (100% - var(--name) - 24px) * var(--played, 0));
+  width: 2px;
+  background: var(--yellow);
+  transition: left 0.4s linear;
+  pointer-events: none;
+}
+
+.dub-tl-head::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -5px;
+  border: 6px solid transparent;
+  border-top: 8px solid var(--yellow);
+}
+
+.dub-bay-notes {
+  grid-area: notes;
+  min-width: 0;
+}
+
+.dub-notes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  padding: 0;
+  list-style: none;
+}
+
+.dub-notes li {
+  padding-top: 18px;
+  border-top: 2px solid var(--swatch, var(--white));
+}
+
+.dub-notes .is-voice {
+  --swatch: var(--voice);
+}
+
+.dub-notes .is-subs {
+  --swatch: var(--yellow);
+}
+
+.dub-notes h3 {
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.dub-notes p {
+  margin-top: 8px;
+  color: var(--text-2);
+  font-size: 15.5px;
+}
+
+.dub-note {
+  margin-top: 14px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+/* ---------- Sc. 02: a filmstrip of use cases ---------- */
+
+.dub-reel-section {
+  padding-bottom: calc(var(--section) - 16px);
+}
+
+.dub-reel {
+  --frame-w: clamp(280px, 36vw, 540px);
+  position: relative;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: calc(var(--edge) - 14px);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.dub-reel::-webkit-scrollbar {
+  display: none;
+}
+
+.dub-reel[data-linked='true'] {
+  overflow: hidden;
+}
+
+/* One continuous strip of film behind every frame, edge to edge, with perforations. */
+.dub-reel-track {
+  --film-h: calc(var(--frame-w) / 2.39 + 80px);
+  display: flex;
+  width: max-content;
+  padding-inline: calc(var(--edge) - 14px);
+  background:
+    linear-gradient(90deg, var(--ink) 0 9px, transparent 9px) 0 10px / 22px 12px repeat-x,
+    linear-gradient(90deg, var(--ink) 0 9px, transparent 9px) 0 calc(var(--film-h) - 22px) / 22px 12px repeat-x,
+    linear-gradient(var(--film), var(--film)) 0 0 / 100% var(--film-h) no-repeat;
+}
+
+.dub-reel[data-linked='true'] .dub-reel-track {
+  transform: translate3d(var(--shift, 0px), 0, 0);
+  will-change: transform;
+}
+
+.dub-reel-item {
+  flex: none;
+  width: calc(var(--frame-w) + 28px);
+  scroll-snap-align: start;
+}
+
+.dub-film {
+  position: relative;
+  padding: 40px 14px;
+}
+
+.dub-film-edge {
+  position: absolute;
+  top: 25px;
+  left: 14px;
+  color: rgba(255, 214, 10, 0.72);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 12px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.dub-film-frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 2.39 / 1;
+  overflow: hidden;
+  background: #000;
+}
+
+.dub-film-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.08) brightness(0.9);
+  transition:
+    filter 0.7s ease,
+    transform 1.2s var(--ease);
+}
+
+.dub-reel-item:hover .dub-film-frame img {
+  filter: none;
+  transform: scale(1.03);
+}
+
+.dub-film-sub {
+  position: absolute;
+  bottom: 9%;
+  left: 50%;
+  width: 92%;
+  translate: -50% 0;
+  color: var(--white);
+  font-size: clamp(14px, 1.35vw, 19px);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: var(--sub-shadow);
+}
+
+.dub-reel-item figcaption {
+  padding: 24px 14px 0;
+}
+
+.dub-reel-item h3 {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.dub-reel-item p {
+  max-width: 30em;
+  margin-top: 8px;
+  color: var(--text-2);
+  font-size: 16px;
+}
+
+.dub-reel-item p strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+/* ---------- Sc. 03: the paper storyboard ---------- */
+
+.dub-board-section {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.dub-board-section .dub-slate {
+  --c: var(--ink);
+  --bg: var(--paper);
+}
+
+.dub-board-section .dub-head-lead {
+  color: var(--paper-text-2);
+}
+
+.dub-board-section :where(button, a):focus-visible {
+  outline-color: var(--blue);
+}
+
+.dub-boards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 32px;
+  padding: 0;
+  list-style: none;
+}
+
+.dub-board-frame {
+  position: relative;
+  display: block;
+  padding: 10px;
+  border: 1.5px solid var(--ink);
+  background: var(--white);
+  transition: transform 0.45s var(--ease);
+}
+
+.dub-board:hover .dub-board-frame {
+  transform: translateY(-4px);
+}
+
+.dub-board-frame img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1284 / 2778;
+  background: #1a1446;
+}
+
+.dub-board-no {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.dub-board h3 {
+  margin-top: 20px;
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.dub-board p {
+  margin-top: 8px;
+  color: var(--paper-text-2);
+  font-size: 15.5px;
+}
+
+.dub-board-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+  margin-top: 56px;
+}
+
+.dub-board-foot p {
+  color: var(--paper-text-2);
+  font-size: 14px;
+}
+
+/* ---------- Sc. 04: questions as subtitle cues ---------- */
+
+.dub-cues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 52px 72px;
+}
+
+.dub-cue-time {
+  display: flex;
+  gap: 14px;
+  color: var(--text-3);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dub-cue-time b {
+  min-width: 1.2em;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.dub-cue dt,
+.dub-cue dd {
+  max-width: 32em;
+  padding-left: 0.9em;
+  text-indent: -0.9em;
+}
+
+.dub-cue dt::before,
+.dub-cue dd::before {
+  content: '– ';
+}
+
+.dub-cue dt {
+  margin-top: 10px;
+  color: var(--yellow);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.dub-cue dd {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* ---------- End credits, then the last card ---------- */
+
+.dub-end {
+  position: relative;
+  padding: 112px 0 120px;
+  background: var(--ink);
+  text-align: center;
+}
+
+.dub-roll {
+  position: relative;
+  height: clamp(300px, 54vh, 500px);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+}
+
+.dub-roll-track {
+  animation: dub-roll 48s linear infinite;
+}
+
+.dub-roll:hover .dub-roll-track {
+  animation-play-state: paused;
+}
+
+@keyframes dub-roll {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.dub-roll-set {
+  padding: 110px var(--gutter) 40px;
+}
+
+.dub-roll-title {
+  margin-bottom: 44px;
+  font-family: var(--display);
+  font-size: clamp(30px, 3.2vw, 44px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.dub-credits {
+  display: grid;
+  gap: 26px;
+}
+
+.dub-credits > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+}
+
+.dub-credits dt {
+  padding-top: 3px;
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.dub-credits dd {
+  display: grid;
+  gap: 2px;
+  color: var(--white);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.dub-card {
+  display: grid;
+  justify-items: center;
+  margin-top: 56px;
+}
+
+.dub-card-icon {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 28px;
+  border-radius: 18px;
+}
+
+.dub-card-title {
+  font-family: var(--display);
+  font-size: clamp(36px, 5.6vw, 82px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.dub-card-title span {
+  display: inline-block;
+}
+
+.dub-card .dub-price {
+  margin-top: 34px;
+}
+
+.dub-card .dub-btn {
+  margin-top: 16px;
+}
+
+.dub-card .dub-terms {
+  margin-top: 14px;
+}
+
+/* ---------- Footer ---------- */
+
+.dub-footer {
+  padding: 34px 0 44px;
+  border-top: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--text-3);
+  font-size: 13px;
+  text-align: center;
+}
+
+.dub-footer-in {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.dub-footer-in p {
+  max-width: 62em;
+}
+
+.dub-footer nav {
+  display: flex;
+  gap: 22px;
+}
+
+.dub-footer a {
+  color: var(--text-2);
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.dub-footer a:hover {
+  color: var(--white);
+}
+
+/* ---------- Dock: a player bar whose scrubber is the page ---------- */
+
+.dub-dock {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  background: rgba(11, 11, 16, 0.97);
+  color: var(--white);
+  transform: translateY(105%);
+  transition: transform 0.45s var(--ease);
+}
+
+.dub-dock.is-visible {
+  transform: none;
+}
+
+.dub-dock-scrub {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.dub-dock-scrub::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--page, 0) * 100%);
+  background: var(--yellow);
+}
+
+.dub-dock > img {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+}
+
+.dub-dock-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.dub-dock-text strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.dub-dock-text small {
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dub-dock .dub-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ---------- Narrower desktops ---------- */
+
+@media (max-width: 1180px) {
+  .dub-bay {
+    grid-template-columns: 280px minmax(0, 1fr);
+    column-gap: 40px;
+  }
+
+  .dub-lang {
+    padding-inline: 9px;
+  }
+
+  .dub-notes {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .dub-chapter span {
+    display: none;
+  }
+
+  .dub-chapter:first-child span {
+    display: inline;
+  }
+}
+
+/* ---------- Tablets and phones ---------- */
+
+@media (max-width: 900px) {
+  .dub {
+    --section: 104px;
+  }
+
+  .dub-header-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dub-header-scene,
+  .dub-btn-header {
+    display: none;
+  }
+
+  .dub-header-tc {
+    justify-self: end;
+  }
+
+  .dub-dock {
+    display: flex;
+  }
+
+  .dub-footer {
+    padding-bottom: 112px;
+  }
+
+  .dub-shot {
+    --shot-h: clamp(300px, 56vw, 520px);
+  }
+
+  .dub-shot-top {
+    padding-inline: var(--gutter);
+  }
+
+  .dub-hero-offer {
+    grid-template-areas:
+      'lead'
+      'buy'
+      'proof';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    row-gap: 24px;
+  }
+
+  .dub-proof {
+    margin-top: 0;
+  }
+
+  /* The edit bay: player and a vertical track list side by side, timeline under them. */
+  .dub-bay {
+    grid-template-areas:
+      'monitor langs'
+      'timeline timeline'
+      'notes notes';
+    grid-template-columns: 300px minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 24px;
+  }
+
+  /* The track list runs the full height of the player beside it. */
+  .dub-langs {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(0, 1fr);
+    align-self: stretch;
+  }
+
+  .dub-lang {
+    align-content: center;
+    padding: 9px 14px 11px;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .dub-lang:first-child {
+    border-top: 0;
+  }
+
+  .dub-reel {
+    --frame-w: min(76vw, 520px);
+  }
+
+  .dub-boards {
+    grid-auto-columns: min(46vw, 260px);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    gap: 20px;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 0 var(--gutter) 8px;
+    overflow-x: auto;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .dub-boards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dub-board {
+    scroll-snap-align: start;
+  }
+
+  .dub-cues {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dub {
+    --gutter: 20px;
+    --header-h: 60px;
+    --section: 88px;
+    font-size: 16px;
+  }
+
+  .dub-ribbon {
+    gap: 8px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+
+  .dub-brand {
+    gap: 9px;
+    font-size: 17px;
+  }
+
+  .dub-brand img {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+  }
+
+  .dub-header-tc {
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .dub-shot {
+    --shot-h: clamp(236px, 80vw, 400px);
+  }
+
+  .dub-shot-top {
+    padding-block: 12px;
+    font-size: 12px;
+  }
+
+  .dub-shot-lips {
+    --arm: 9px;
+  }
+
+  .dub-shot-lips span {
+    display: none;
+  }
+
+  .dub-scrub {
+    padding-top: 16px;
+  }
+
+  .dub-scrub-bar {
+    top: 16px;
+  }
+
+  .dub-chapter {
+    justify-content: center;
+    padding: 12px 0 4px;
+    font-size: 12px;
+  }
+
+  .dub-chapter:first-child span {
+    display: none;
+  }
+
+  .dub-hero-offer {
+    row-gap: 20px;
+    padding-top: 22px;
+  }
+
+  .dub-lead {
+    font-size: 17px;
+  }
+
+  .dub-proof {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .dub-hero-buy,
+  .dub-hero-buy .dub-btn {
+    width: 100%;
+  }
+
+  .dub-head {
+    display: block;
+    margin-bottom: 40px;
+  }
+
+  .dub-slate {
+    float: left;
+    width: 78px;
+    margin: 2px 16px 8px 0;
+    padding-top: 13px;
+  }
+
+  .dub-slate-stick {
+    height: 12px;
+    background: repeating-linear-gradient(-55deg, var(--c) 0 6px, var(--bg) 6px 12px);
+  }
+
+  .dub-slate-no {
+    padding: 7px 7px 5px;
+    font-size: 22px;
+  }
+
+  .dub-slate-no small {
+    font-size: 10px;
+  }
+
+  .dub-slate-name {
+    padding: 4px 7px 5px;
+    font-size: 10.5px;
+  }
+
+  .dub-title {
+    font-size: clamp(26px, 8.2vw, 34px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    text-wrap: pretty;
+  }
+
+  .dub-head-lead {
+    clear: left;
+    margin-top: 0;
+    padding-top: 14px;
+    font-size: 16px;
+  }
+
+  .dub-bay {
+    grid-template-columns: minmax(0, 1fr) clamp(80px, 34%, 140px);
+    gap: 20px 12px;
+  }
+
+  .dub-player-top {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .dub-player-top > span:last-child {
+    display: none;
+  }
+
+  .dub-lips {
+    --arm: 9px;
+  }
+
+  .dub-player-sub {
+    right: 8px;
+    bottom: 18px;
+    left: 8px;
+    font-size: clamp(13px, 4.2vw, 16px);
+  }
+
+  .dub-processing {
+    right: 8px;
+    bottom: 14px;
+    left: 8px;
+    padding: 9px 10px 10px;
+    font-size: 12px;
+  }
+
+  .dub-toast {
+    top: 6px;
+    right: 6px;
+    left: 6px;
+    gap: 7px;
+    padding: 7px 8px 7px 7px;
+    border-radius: 13px;
+    font-size: 11px;
+  }
+
+  .dub-toast img {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+
+  .dub-toast-head small {
+    display: none;
+  }
+
+  .dub-transport {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+
+  .dub-transport-name {
+    display: none;
+  }
+
+  .dub-play {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dub-lang {
+    padding: 8px 10px 9px;
+  }
+
+  .dub-lang b {
+    font-size: 17px;
+  }
+
+  .dub-lang span {
+    font-size: 11.5px;
+  }
+
+  .dub-timeline {
+    --name: 96px;
+  }
+
+  .dub-tl-name {
+    gap: 6px;
+    padding: 0 10px;
+    font-size: 11.5px;
+  }
+
+  .dub-tl-picture {
+    display: none;
+  }
+
+  .dub-tl-lane {
+    padding: 7px 10px;
+  }
+
+  .dub-tl-ticks,
+  .dub-tl-render {
+    right: 10px;
+    left: 10px;
+  }
+
+  .dub-tl-head {
+    left: calc(var(--name) + 10px + (100% - var(--name) - 20px) * var(--played, 0));
+  }
+
+  .dub-wave {
+    gap: 1px;
+    height: 34px;
+  }
+
+  .dub-mouths {
+    gap: 4px;
+    height: 52px;
+  }
+
+  .dub-mouth:nth-child(n + 5) {
+    display: none;
+  }
+
+  .dub-clips span {
+    padding: 6px 7px;
+    font-size: 12px;
+  }
+
+  .dub-notes {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .dub-notes li {
+    padding-top: 14px;
+  }
+
+  .dub-notes h3 {
+    font-size: 19px;
+  }
+
+  .dub-reel {
+    --frame-w: calc(100vw - var(--gutter) * 2 - 28px);
+  }
+
+  .dub-reel-item h3 {
+    font-size: 21px;
+  }
+
+  .dub-reel-item p {
+    font-size: 15px;
+  }
+
+  .dub-boards {
+    grid-auto-columns: min(62vw, 240px);
+    gap: 16px;
+  }
+
+  .dub-board h3 {
+    margin-top: 16px;
+    font-size: 19px;
+  }
+
+  .dub-board p {
+    font-size: 15px;
+  }
+
+  .dub-board-foot {
+    margin-top: 40px;
+  }
+
+  .dub-board-foot .dub-btn {
+    width: 100%;
+  }
+
+  .dub-cue dt {
+    font-size: 19px;
+  }
+
+  .dub-cue dd {
+    font-size: 16px;
+  }
+
+  .dub-end {
+    padding: 80px 0 88px;
+  }
+
+  .dub-roll {
+    height: clamp(280px, 48vh, 400px);
+  }
+
+  .dub-roll-set {
+    padding-top: 80px;
+  }
+
+  .dub-roll-title {
+    margin-bottom: 32px;
+  }
+
+  .dub-credits {
+    gap: 22px;
+  }
+
+  /* Phone credits: one card per role, role above the names, on the center line. */
+  .dub-credits > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .dub-credits dt {
+    padding-top: 0;
+    font-size: 12.5px;
+    text-align: center;
+  }
+
+  .dub-credits dd {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .dub-card-title {
+    font-size: clamp(30px, 9.4vw, 40px);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+  }
+
+  .dub-card {
+    margin-top: 40px;
+  }
+
+  .dub-card-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 22px;
+    border-radius: 15px;
+  }
+
+  .dub-card .dub-btn {
+    width: 100%;
+  }
+
+  .dub-dock {
+    gap: 10px;
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 380px) {
+  .dub-header-tc .dub-rec {
+    display: none;
+  }
+
+  .dub-dock-text small {
+    display: none;
+  }
+
+  .dub-dock > img {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+
+  .dub-dock .dub-btn-small {
+    padding: 0 14px 0 12px;
+    font-size: 14px;
+  }
+
+  .dub-btn {
+    padding: 0 20px 0 18px;
+    font-size: 16px;
+  }
+
+  .dub-lang span {
+    display: none;
+  }
+
+  .dub-tl-name::before {
+    display: none;
+  }
+
+  .dub-tl-ticks span:nth-child(even) {
+    display: none;
+  }
+}
+
+@media (max-width: 340px) {
+  .dub-dock > img {
+    display: none;
+  }
+}
+
+/* Touch screens get the stills in color; the black-and-white-to-color reveal needs a pointer. */
+@media (hover: none) {
+  .dub-film-frame img {
+    filter: none;
+  }
+}
+
+/* No motion: everything in its final place. */
+@media (prefers-reduced-motion: reduce) {
+  .dub *,
+  .dub *::before,
+  .dub *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .dub-roll {
+    height: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .dub-roll-set + .dub-roll-set {
+    display: none;
+  }
+}

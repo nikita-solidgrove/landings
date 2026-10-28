@@ -1,0 +1,4073 @@
+/*
+ * Plant Identifier landing: seed packets and herbarium sheets. Josefin Sans prints the packets,
+ * tags and labels; Nunito Sans carries the reading text. Cream paper, forest green, the app's green
+ * #00a86b for the camera's brackets and leaves, terracotta for every button, sun yellow at the end.
+ */
+.pid {
+  --cream: #f6f0e3;
+  --paper: #fffaf0;
+  --kraft: #e7d9ba;
+  --kraft-deep: #d4bf94;
+  --forest: #1f3d2b;
+  --forest-2: #2a5139;
+  --forest-ink: #13261a;
+  --leaf: #00a86b;
+  --leaf-dark: #00804f;
+  --leaf-soft: #dcefe2;
+  --clay: #c0532c;
+  --clay-hover: #a94522;
+  --clay-dark: #82341a;
+  --clay-field: #b04d2b;
+  --sun: #f2c14b;
+  --soil: #2f241a;
+  --twine: #dcc79c;
+  --ink: #1a2b20;
+  --muted: #5b685d;
+  --line: rgba(31, 61, 43, 0.13);
+  --rule: rgba(31, 61, 43, 0.55);
+  --alert: #e0453f;
+  --water: #2d8cf0;
+  --mist: #9b3fc9;
+  --rotate: #f08c00;
+  --feed: #e3336a;
+  --light: #e9a100;
+  --display: 'Josefin Sans Variable', 'Futura', system-ui, sans-serif;
+  --text: 'Nunito Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ease-out: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --gutter: 32px;
+  --header-h: 76px;
+  /* Paper fibre: a faint noise laid over every paper surface. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.32 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.pid *,
+.pid *::before,
+.pid *::after {
+  box-sizing: border-box;
+}
+
+/* Resets without specificity, so component classes always win. */
+:where(.pid) :where(h1, h2, h3, p, ol, ul, dl, dd, figure) {
+  margin: 0;
+}
+
+:where(.pid) :where(ol, ul) {
+  padding: 0;
+  list-style: none;
+}
+
+:where(.pid) :where(button) {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:where(.pid) :where(a) {
+  color: inherit;
+}
+
+:where(.pid) :where(img) {
+  display: block;
+  max-width: 100%;
+}
+
+.pid-wrap {
+  width: 100%;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@keyframes pid-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+/* A hung tag or packet swinging to rest around its string (uses the `rotate` property). */
+@keyframes pid-swing {
+  0% {
+    rotate: calc(var(--tilt, 0deg) + 8deg);
+  }
+
+  28% {
+    rotate: calc(var(--tilt, 0deg) - 5deg);
+  }
+
+  52% {
+    rotate: calc(var(--tilt, 0deg) + 2.6deg);
+  }
+
+  76% {
+    rotate: calc(var(--tilt, 0deg) - 1deg);
+  }
+
+  100% {
+    rotate: var(--tilt, 0deg);
+  }
+}
+
+@keyframes pid-swing-soft {
+  0%,
+  100% {
+    rotate: var(--tilt, 0deg);
+  }
+
+  30% {
+    rotate: calc(var(--tilt, 0deg) + 3.5deg);
+  }
+
+  62% {
+    rotate: calc(var(--tilt, 0deg) - 2deg);
+  }
+
+  84% {
+    rotate: calc(var(--tilt, 0deg) + 0.8deg);
+  }
+}
+
+/* ---------- Buttons: a terracotta label with a printed inner rule ---------- */
+
+.pid-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--clay);
+  color: #fff8ec;
+  box-shadow:
+    0 4px 0 var(--clay-dark),
+    0 16px 24px -16px rgba(130, 52, 26, 0.9);
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    background-color 0.2s ease;
+}
+
+.pid-cta::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(255, 248, 236, 0.42);
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* Josefin's capitals sit high in their line box; this centers them optically. */
+.pid-cta > span {
+  padding-top: 0.2em;
+}
+
+.pid-cta svg {
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.pid-cta:hover {
+  background: var(--clay-hover);
+}
+
+.pid-cta:hover svg {
+  transform: translateX(4px);
+}
+
+.pid-cta:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 var(--clay-dark),
+    0 8px 14px -10px rgba(130, 52, 26, 0.9);
+}
+
+.pid-cta:focus-visible,
+.pid-header-cta:focus-visible,
+.pid-nametag:focus-visible,
+.pid-snap:focus-visible,
+.pid-mounts:focus-visible,
+.pid-line-scroll:focus-visible,
+.pid-footer a:focus-visible {
+  outline: 3px solid var(--leaf);
+  outline-offset: 4px;
+}
+
+.pid-cta-small {
+  min-height: 46px;
+  padding: 0 18px;
+  box-shadow: 0 3px 0 var(--clay-dark);
+  font-size: 14px;
+}
+
+.pid-cta-small::before {
+  inset: 4px;
+}
+
+.pid-terms {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.pid-price {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.pid-price strong {
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.pid-price s {
+  margin: 0 4px 0 6px;
+}
+
+/* ---------- Creator ribbon: a strip torn off along its perforation ---------- */
+
+.pid-ribbon {
+  position: relative;
+  z-index: 41;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 9px 16px 11px;
+  background: var(--forest-ink);
+  color: var(--cream);
+  font-size: 14px;
+}
+
+.pid-ribbon::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(246, 240, 227, 0.32) 0 6px, transparent 6px 11px);
+}
+
+.pid-ribbon p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pid-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--sun);
+  color: var(--forest);
+  font-size: 11px;
+  font-weight: 800;
+  object-fit: cover;
+}
+
+.pid-ribbon-deal {
+  flex-shrink: 0;
+  color: var(--sun);
+  font-weight: 800;
+}
+
+/* ---------- Header: two plant tags ---------- */
+
+/*
+ * Sticky header with a progressive blur (see ProgressiveBlur). The header itself stays free of
+ * filter/opacity/backdrop-filter, or the blur layers stop seeing the page behind it.
+ */
+.pid-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.pid-header-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100% + 40px);
+  pointer-events: none;
+}
+
+.pid-header-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.pid-header-tint-light {
+  background: linear-gradient(
+    to bottom,
+    rgba(246, 240, 227, 0.92) 0%,
+    rgba(246, 240, 227, 0.62) 50%,
+    rgba(246, 240, 227, 0) 100%
+  );
+}
+
+.pid-header-tint-dark {
+  background: linear-gradient(
+    to bottom,
+    rgba(19, 38, 26, 0.86) 0%,
+    rgba(19, 38, 26, 0.52) 50%,
+    rgba(19, 38, 26, 0) 100%
+  );
+}
+
+.pid-header[data-stuck='true'][data-tone='light'] .pid-header-tint-light,
+.pid-header[data-stuck='true'][data-tone='dark'] .pid-header-tint-dark {
+  opacity: 1;
+}
+
+.pid-header-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: var(--header-h);
+}
+
+/* The name tag: chamfered end, punched hole with a reinforcing ring. */
+.pid-nametag {
+  display: block;
+  min-width: 0;
+  border-radius: 4px;
+  text-decoration: none;
+  filter: drop-shadow(0 6px 10px rgba(19, 38, 26, 0.2));
+  transform-origin: 16px 50%;
+  transition: rotate 0.6s var(--spring);
+}
+
+.pid-nametag:hover {
+  rotate: -2.5deg;
+}
+
+.pid-nametag-shape {
+  --cut: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 50px;
+  padding: 0 18px 0 32px;
+  background: var(--paper) var(--grain);
+  color: var(--forest);
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  -webkit-mask: radial-gradient(circle at 15px 50%, transparent 4.5px, #000 5px);
+  mask: radial-gradient(circle at 15px 50%, transparent 4.5px, #000 5px);
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
+}
+
+.pid-nametag-shape::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2.5px solid var(--kraft-deep);
+  border-radius: 50%;
+  transition: border-color 0.35s ease;
+}
+
+.pid-nametag img {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+
+.pid-nametag-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.1;
+}
+
+.pid-nametag-text strong {
+  overflow: hidden;
+  padding-top: 0.18em;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pid-nametag-text small {
+  color: var(--muted);
+  font-size: 12px;
+  transition: color 0.35s ease;
+}
+
+.pid-header[data-tone='dark'] .pid-nametag-shape {
+  background-color: var(--forest-2);
+  color: var(--cream);
+}
+
+.pid-header[data-tone='dark'] .pid-nametag-shape::before {
+  border-color: rgba(246, 240, 227, 0.3);
+}
+
+.pid-header[data-tone='dark'] .pid-nametag-text small {
+  color: rgba(246, 240, 227, 0.7);
+}
+
+/* The button tag: terracotta, swings on its hole when hovered. */
+.pid-header-cta {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  filter: drop-shadow(0 6px 10px rgba(19, 38, 26, 0.22));
+  transform-origin: 14px 50%;
+  transition: rotate 0.6s var(--spring);
+}
+
+.pid-header-cta > span {
+  --cut: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 46px;
+  padding: 0.2em 20px 0 32px;
+  background: var(--clay);
+  color: #fff8ec;
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  -webkit-mask: radial-gradient(circle at 15px 50%, transparent 4px, #000 4.5px);
+  mask: radial-gradient(circle at 15px 50%, transparent 4px, #000 4.5px);
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.pid-header-cta > span::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2.5px solid rgba(255, 248, 236, 0.45);
+  border-radius: 50%;
+}
+
+.pid-header-cta:hover {
+  rotate: -3deg;
+}
+
+.pid-header-cta:hover > span {
+  background: var(--clay-hover);
+}
+
+.pid-header-cta:active > span {
+  translate: 0 1px;
+}
+
+/* ---------- Hero: a seed packet on the potting bench ---------- */
+
+.pid-hero {
+  position: relative;
+  margin-top: calc(var(--header-h) * -1);
+  padding: calc(var(--header-h) + 24px) 0 112px;
+  overflow: hidden;
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.pid-hero-leaf {
+  position: absolute;
+  z-index: 0;
+  width: 440px;
+  height: auto;
+  pointer-events: none;
+}
+
+.pid-hero-leaf-a {
+  top: -30px;
+  right: -120px;
+  rotate: 152deg;
+}
+
+.pid-hero-leaf-b {
+  bottom: -150px;
+  left: -110px;
+  width: 380px;
+  rotate: 28deg;
+}
+
+.pid-monstera {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pid-frond 9s ease-in-out infinite alternate;
+}
+
+.pid-hero-leaf-b .pid-monstera {
+  animation-duration: 11s;
+  animation-delay: -3s;
+}
+
+@keyframes pid-frond {
+  from {
+    rotate: -2.5deg;
+  }
+
+  to {
+    rotate: 2.5deg;
+  }
+}
+
+.pid-monstera-blade {
+  fill: #254636;
+}
+
+.pid-monstera-stem {
+  fill: none;
+  stroke: #254636;
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+
+.pid-monstera-cut {
+  fill: none;
+  stroke: var(--forest);
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+
+.pid-monstera-rib {
+  fill: none;
+  stroke: var(--forest);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.pid-hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 396px);
+  align-items: center;
+  gap: 72px;
+}
+
+/* The packet: a face with a stamped double border and a flap folded open below it. */
+.pid-packet {
+  position: relative;
+  container-type: inline-size;
+  filter: drop-shadow(0 28px 34px rgba(5, 18, 10, 0.45));
+  rotate: -1deg;
+  animation: pid-packet-in 1.1s var(--ease-out) 0.1s both;
+}
+
+@keyframes pid-packet-in {
+  from {
+    opacity: 0;
+    transform: translateY(46px);
+    rotate: -4deg;
+  }
+}
+
+.pid-packet-face {
+  position: relative;
+  padding: 30px 34px 30px;
+  border-radius: 4px 4px 0 0;
+  background: var(--paper) var(--grain);
+  color: var(--forest);
+}
+
+.pid-packet-face::before {
+  content: '';
+  position: absolute;
+  inset: 13px 13px 10px;
+  border: 1px solid currentColor;
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.pid-packet-band {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 10px 16px 7px;
+  background: var(--forest);
+  color: var(--cream);
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.pid-packet-title {
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: clamp(28px, 8.4cqi, 66px);
+  font-weight: 700;
+  letter-spacing: 0.004em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pid-packet-title > span {
+  display: block;
+}
+
+.pid-packet-body {
+  display: grid;
+  grid-template-columns: 34% minmax(0, 1fr);
+  align-items: center;
+  gap: 30px;
+  margin-top: 26px;
+}
+
+/* An arched photo window, framed twice like a printed vignette. */
+.pid-window {
+  position: relative;
+  aspect-ratio: 5 / 6;
+  overflow: hidden;
+  border: 2px solid var(--forest);
+  border-radius: 999px 999px 3px 3px;
+  background: var(--leaf-soft);
+  box-shadow:
+    0 0 0 4px var(--paper),
+    0 0 0 5px var(--forest);
+}
+
+.pid-window img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: pid-window-in 1.8s var(--ease-out) 0.3s both;
+}
+
+@keyframes pid-window-in {
+  from {
+    opacity: 0;
+    transform: scale(1.14);
+  }
+}
+
+.pid-lead {
+  color: var(--ink);
+  font-size: clamp(15px, 2.45cqi, 18px);
+  line-height: 1.55;
+}
+
+.pid-specs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 22px;
+  border-top: 1.5px solid var(--forest);
+  border-bottom: 1.5px solid var(--forest);
+}
+
+.pid-specs > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 13px 8px 11px;
+  text-align: center;
+}
+
+.pid-specs > div + div {
+  border-left: 1px solid var(--rule);
+}
+
+.pid-specs dd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding-top: 0.14em;
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: clamp(18px, 3.4cqi, 26px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pid-specs dd svg {
+  margin-top: -0.2em;
+  color: var(--clay);
+}
+
+.pid-specs dt {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.25;
+}
+
+/* The flap, folded open: kraft paper cut as a trapezoid, a dashed fold line on top. */
+.pid-flap {
+  --slant: 30px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 24px calc(var(--slant) + 22px) 28px;
+}
+
+.pid-flap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 0 0 10px 10px;
+  background: var(--kraft) var(--grain);
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--slant)) 100%, var(--slant) 100%);
+}
+
+.pid-flap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(31, 61, 43, 0.5) 0 8px, transparent 8px 14px);
+}
+
+.pid-flap .pid-terms {
+  grid-column: 1 / -1;
+}
+
+.pid-hero-demo {
+  position: relative;
+  animation: pid-rise 1s var(--ease-out) 0.35s both;
+}
+
+/* ---------- Scanner demo ---------- */
+
+.pid-scanner {
+  width: 100%;
+}
+
+.pid-vf {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 7px solid var(--forest-ink);
+  border-radius: 38px;
+  background: #1b2b22;
+  box-shadow: 0 40px 60px -30px rgba(0, 0, 0, 0.55);
+  isolation: isolate;
+}
+
+.pid-vf-media {
+  position: absolute;
+  inset: 0;
+  transform-origin: var(--zo, 50% 50%);
+  transition: transform 0.8s var(--ease-out);
+}
+
+/* The photo zooms toward the plant and moves up to make room for the sheet. */
+.pid-vf[data-phase='result'] .pid-vf-media {
+  transform: translateY(var(--zt, -14%)) scale(var(--zs, 1.3));
+}
+
+.pid-vf-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.pid-vf-photo.is-active {
+  opacity: 1;
+  animation: pid-kenburns 11s ease-out both;
+}
+
+@keyframes pid-kenburns {
+  from {
+    transform: scale(1.12);
+  }
+
+  to {
+    transform: scale(1.02);
+  }
+}
+
+/* A light vignette keeps the white camera controls readable on any photo. */
+.pid-vf::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.32), transparent 22%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.36), transparent 28%);
+  pointer-events: none;
+}
+
+.pid-vf-top,
+.pid-vf-controls {
+  position: absolute;
+  right: 14px;
+  left: 14px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+}
+
+.pid-vf-top {
+  top: 14px;
+}
+
+.pid-vf-controls {
+  bottom: 18px;
+  justify-content: space-evenly;
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s var(--ease-out);
+}
+
+.pid-vf[data-phase='result'] .pid-vf-controls {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.pid-vf-round {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(20, 30, 24, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.pid-shutter {
+  width: 66px;
+  height: 66px;
+  border: 5px solid var(--leaf);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s ease;
+}
+
+.pid-vf[data-phase='lock'] .pid-shutter {
+  transform: scale(0.88);
+}
+
+/* Identify / Diagnose segmented control */
+.pid-seg {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(20, 30, 24, 0.42);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pid-seg::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 0.45s var(--spring);
+}
+
+.pid-seg[data-mode='Diagnose']::before {
+  transform: translateX(100%);
+}
+
+.pid-seg span {
+  position: relative;
+  padding: 6px 14px;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.pid-seg[data-mode='Identify'] span:first-child,
+.pid-seg[data-mode='Diagnose'] span:last-child {
+  color: var(--ink);
+}
+
+/* Focus brackets, like the corners on the app icon */
+.pid-brackets {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  z-index: 2;
+  width: var(--w);
+  height: var(--h);
+  transition:
+    top 0.65s var(--spring),
+    left 0.65s var(--spring),
+    width 0.65s var(--spring),
+    height 0.65s var(--spring),
+    opacity 0.4s ease;
+}
+
+.pid-brackets i {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 0 solid #fff;
+  transition: border-color 0.3s ease;
+}
+
+.pid-brackets i:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-width: 4px 0 0 4px;
+  border-top-left-radius: 12px;
+}
+
+.pid-brackets i:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-width: 4px 4px 0 0;
+  border-top-right-radius: 12px;
+}
+
+.pid-brackets i:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 4px 4px;
+  border-bottom-left-radius: 12px;
+}
+
+.pid-brackets i:nth-child(4) {
+  right: 0;
+  bottom: 0;
+  border-width: 0 4px 4px 0;
+  border-bottom-right-radius: 12px;
+}
+
+.pid-vf[data-phase='aim'] .pid-brackets {
+  animation: pid-breathe 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes pid-breathe {
+  to {
+    transform: scale(0.97);
+  }
+}
+
+.pid-vf:not([data-phase='aim']) .pid-brackets i {
+  border-color: var(--leaf);
+}
+
+.pid-vf[data-phase='lock'] .pid-brackets {
+  animation: pid-lock 0.5s var(--spring) 0.45s;
+}
+
+@keyframes pid-lock {
+  40% {
+    transform: scale(1.05);
+  }
+}
+
+.pid-vf[data-mode='Diagnose']:not([data-phase='aim']) .pid-brackets i {
+  border-color: #fff;
+}
+
+.pid-vf[data-phase='result'] .pid-brackets {
+  opacity: 0;
+}
+
+.pid-sweep {
+  position: absolute;
+  inset: 0 10px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.pid-sweep::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 42%;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.95);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.28));
+  transform: translateY(-100%);
+}
+
+.pid-vf[data-phase='scan'] .pid-sweep {
+  opacity: 1;
+}
+
+.pid-vf[data-phase='scan'] .pid-sweep::before {
+  animation: pid-sweep 1.5s ease-in-out;
+}
+
+@keyframes pid-sweep {
+  to {
+    transform: translateY(240%);
+  }
+}
+
+.pid-status {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(20, 30, 24, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s var(--ease-out);
+}
+
+.pid-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--leaf);
+  animation: pid-blink 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes pid-blink {
+  to {
+    opacity: 0.25;
+  }
+}
+
+.pid-vf[data-phase='named'] .pid-status,
+.pid-vf[data-phase='result'] .pid-status {
+  opacity: 0;
+  transform: translate(-50%, 10px);
+}
+
+/* Name chip, shaped like the result card in the app's own screenshots */
+.pid-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 86%;
+  padding: 8px 16px 8px 8px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 18px 36px -16px rgba(0, 0, 0, 0.55);
+  line-height: 1.2;
+  text-align: left;
+}
+
+.pid-vf .pid-chip {
+  position: absolute;
+  top: calc(var(--y) + var(--h));
+  left: calc(var(--x) + var(--w) / 2);
+  z-index: 4;
+  opacity: 0;
+  transform: translate(-50%, -30%) scale(0.85);
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s var(--spring);
+  pointer-events: none;
+}
+
+.pid-vf[data-phase='named'] .pid-chip {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.pid-chip > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pid-chip strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--leaf-dark);
+  font-size: 16px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pid-chip small {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pid-chip.is-alert strong {
+  color: var(--alert);
+}
+
+.pid-thumb {
+  display: block;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--leaf-soft);
+  object-fit: cover;
+}
+
+/* Result sheet */
+.pid-sheet {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  z-index: 5;
+  padding: 8px 14px 14px;
+  border-radius: 28px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 -10px 30px -12px rgba(0, 0, 0, 0.4);
+  transform: translateY(115%);
+  transition: transform 0.6s var(--ease-out);
+}
+
+.pid-vf[data-phase='result'] .pid-sheet {
+  transform: none;
+}
+
+.pid-sheet-handle {
+  display: block;
+  width: 38px;
+  height: 5px;
+  margin: 0 auto 10px;
+  border-radius: 3px;
+  background: rgba(19, 38, 30, 0.18);
+}
+
+.pid-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pid-sheet-head .pid-thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.pid-sheet-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.pid-sheet-name strong {
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pid-sheet-name strong.is-alert {
+  color: var(--alert);
+}
+
+.pid-sheet-name small {
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.pid-sheet-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pid-sheet-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--leaf-soft);
+  color: var(--leaf-dark);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.pid-sheet-action.is-on {
+  background: var(--leaf);
+  color: #fff;
+}
+
+.pid-vf[data-phase='result'] .pid-sheet-action.is-on {
+  animation: pid-toggle 0.5s var(--spring) 1s both;
+}
+
+@keyframes pid-toggle {
+  from {
+    background: var(--leaf-soft);
+    color: var(--leaf-dark);
+    transform: scale(0.9);
+  }
+}
+
+.pid-sheet-rows {
+  display: grid;
+  gap: 2px;
+}
+
+.pid-sheet-rows li {
+  display: grid;
+  grid-template-columns: 28px auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.pid-sheet-rows li > span:not(.pid-care) {
+  color: var(--muted);
+}
+
+.pid-sheet-rows li strong {
+  overflow: hidden;
+  font-weight: 700;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pid-vf[data-phase='result'] .pid-sheet-rows li {
+  animation: pid-row-in 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 110ms + 300ms);
+}
+
+@keyframes pid-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Care action icons in the app's colors */
+.pid-care {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tone, var(--leaf));
+  color: #fff;
+}
+
+.pid-care-water {
+  --tone: var(--water);
+}
+
+.pid-care-mist {
+  --tone: var(--mist);
+}
+
+.pid-care-rotate {
+  --tone: var(--rotate);
+}
+
+.pid-care-feed {
+  --tone: var(--feed);
+}
+
+.pid-care-light {
+  --tone: var(--light);
+}
+
+.pid-care-info {
+  --tone: var(--leaf);
+}
+
+.pid-care-alert {
+  --tone: var(--alert);
+}
+
+/* iOS-style notification */
+.pid-toast {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  left: 10px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 20px;
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ink);
+  box-shadow: 0 16px 34px -14px rgba(0, 0, 0, 0.5);
+  animation: pid-toast 4.2s var(--ease-out) 1.4s both;
+}
+
+.pid-toast img {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 9px;
+}
+
+.pid-toast > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.pid-toast small {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pid-toast small b {
+  font-weight: 700;
+}
+
+.pid-toast small em {
+  font-style: normal;
+  text-transform: none;
+}
+
+.pid-toast strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pid-toast > span > span {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes pid-toast {
+  0% {
+    opacity: 0;
+    transform: translateY(-130%);
+  }
+
+  14%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-130%);
+  }
+}
+
+/* Example snaps: three plant tags hung on a twine under the camera */
+.pid-snaps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 26px;
+}
+
+.pid-twine {
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: calc(100% + 16px);
+  height: 24px;
+  overflow: visible;
+}
+
+.pid-twine path,
+.pid-line-twine path {
+  fill: none;
+  stroke: var(--twine);
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.pid-snap {
+  --tilt: 0deg;
+  position: relative;
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--forest);
+  text-align: center;
+  transform-origin: 50% calc(var(--ty) - 26px);
+  animation: pid-swing 1.8s ease-out both;
+  animation-delay: calc(var(--n, 0) * 140ms + 900ms);
+}
+
+.pid-snap[aria-pressed='true'] {
+  animation-name: pid-swing-soft;
+  animation-delay: 0s;
+}
+
+/* The string from the twine down to the tag's hole. */
+.pid-snap::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--ty) - 26px);
+  left: 50%;
+  z-index: 2;
+  width: 1.5px;
+  height: calc(26px - var(--ty) + 13px);
+  margin-left: -0.75px;
+  background: var(--twine);
+}
+
+.pid-snap-tag {
+  --cut: 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 30px 6px 15px;
+  background: var(--paper) var(--grain);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%, 0 var(--cut));
+  -webkit-mask: radial-gradient(circle at 50% 13px, transparent 4px, #000 4.5px);
+  mask: radial-gradient(circle at 50% 13px, transparent 4px, #000 4.5px);
+  transition: background-color 0.3s ease;
+}
+
+.pid-snap-tag::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border: 2.5px solid var(--kraft-deep);
+  border-radius: 50%;
+}
+
+.pid-snap .pid-thumb {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 7px;
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 3px var(--line);
+}
+
+.pid-snap strong {
+  max-width: 100%;
+  overflow: hidden;
+  padding-top: 0.12em;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pid-snap small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (hover: hover) {
+  .pid-snap:hover .pid-snap-tag {
+    background-color: #fff;
+  }
+}
+
+.pid-snap[aria-pressed='true'] .pid-snap-tag {
+  background-color: var(--sun);
+}
+
+.pid-snap[aria-pressed='true'] small {
+  color: var(--forest);
+}
+
+.pid-snap[aria-pressed='true'] .pid-thumb {
+  box-shadow:
+    0 0 0 2px var(--sun),
+    0 0 0 3.5px var(--forest);
+}
+
+.pid-snap-progress {
+  position: absolute;
+  right: 16px;
+  bottom: 6px;
+  left: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--forest);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: pid-progress var(--scene-ms) linear both;
+}
+
+@keyframes pid-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.pid-demo-note {
+  margin-top: 14px;
+  color: rgba(246, 240, 227, 0.62);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+/* ---------- Paper pieces shared by the sections ---------- */
+
+/* Paper tape with torn ends. */
+.pid-tape {
+  position: absolute;
+  z-index: 4;
+  width: 104px;
+  height: 30px;
+  background: rgba(236, 224, 192, 0.8);
+  box-shadow: 0 1px 2px rgba(70, 50, 20, 0.12);
+  clip-path: polygon(2% 0, 98% 0, 100% 22%, 97% 42%, 100% 62%, 97% 82%, 99% 100%, 1% 100%, 3% 80%, 0 60%, 3% 40%, 0 20%);
+  pointer-events: none;
+}
+
+.pid-tape-tl {
+  top: -13px;
+  left: 22px;
+  rotate: -9deg;
+}
+
+.pid-tape-tr {
+  top: -13px;
+  right: 26px;
+  rotate: 8deg;
+}
+
+.pid-tape-br {
+  right: 26px;
+  bottom: -12px;
+  rotate: -7deg;
+}
+
+.pid-tape-top {
+  top: -14px;
+  left: 50%;
+  margin-left: -52px;
+  rotate: -3deg;
+}
+
+/* A photo print with a white border, mounted on the sheet. */
+.pid-print {
+  position: relative;
+  padding: 10px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(31, 61, 43, 0.14),
+    0 22px 34px -22px rgba(31, 61, 43, 0.5);
+}
+
+/* The heading device: a specimen label with its number, name, italic line and notes. */
+.pid-label {
+  position: relative;
+  max-width: 560px;
+  border: 1.5px solid var(--forest);
+  background: var(--paper) var(--grain);
+  color: var(--ink);
+  box-shadow: 0 20px 36px -26px rgba(10, 25, 15, 0.55);
+}
+
+.pid-label::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+
+.pid-label-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.pid-label-no {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  padding: 18px 14px 12px;
+  border-right: 1px solid var(--rule);
+  color: var(--clay);
+  font-family: var(--display);
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 0.9;
+}
+
+.pid-label-no small {
+  margin-bottom: 6px;
+  color: var(--forest);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.pid-label-name {
+  align-self: center;
+  padding: 22px 26px 18px;
+}
+
+.pid-label-title {
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: clamp(27px, 3vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.pid-label-line {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 16px;
+  font-style: italic;
+}
+
+.pid-label-notes {
+  padding: 20px 26px 22px;
+  border-top: 1px solid var(--rule);
+}
+
+.pid-label-notes > p {
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.pid-label-wide {
+  width: fit-content;
+  max-width: 760px;
+}
+
+.pid-label-center {
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+.pid-facts {
+  margin-top: 14px;
+}
+
+.pid-facts li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px dashed rgba(31, 61, 43, 0.3);
+  color: var(--forest);
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.pid-facts li > span {
+  font-weight: 500;
+}
+
+.pid-facts li > span strong {
+  font-weight: 800;
+}
+
+.pid-sprig {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pid-sprig path:first-child {
+  fill: var(--leaf);
+}
+
+.pid-sprig path:last-child {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+/* A round herbarium stamp, inked in terracotta. */
+.pid-stamp {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  width: 116px;
+  height: 116px;
+  color: var(--clay);
+  opacity: 0;
+  rotate: -14deg;
+  scale: 1.35;
+  transition:
+    opacity 0.25s ease 0.7s,
+    scale 0.45s var(--spring) 0.7s;
+}
+
+[data-shown] .pid-stamp {
+  opacity: 0.82;
+  scale: 1;
+}
+
+.pid-stamp-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+}
+
+.pid-stamp-thin {
+  stroke-width: 1.4;
+}
+
+.pid-stamp-ring-text {
+  fill: currentColor;
+  font-family: var(--display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.pid-stamp-no {
+  fill: currentColor;
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  dominant-baseline: middle;
+}
+
+/* ---------- Specimen sheets ---------- */
+
+.pid-folios {
+  padding: 128px 0 136px;
+  background: var(--cream) var(--grain);
+}
+
+.pid-folio {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: end;
+  gap: 64px;
+  padding: 64px 56px 56px;
+  background: var(--paper) var(--grain);
+  box-shadow:
+    0 1px 2px rgba(31, 61, 43, 0.1),
+    0 44px 64px -50px rgba(31, 61, 43, 0.6);
+}
+
+.pid-folio + .pid-folio {
+  margin-top: 72px;
+}
+
+.pid-folio:nth-child(1) {
+  rotate: -0.35deg;
+}
+
+.pid-folio:nth-child(2) {
+  rotate: 0.3deg;
+}
+
+.pid-folio:nth-child(3) {
+  rotate: -0.2deg;
+}
+
+.pid-folio-flip .pid-folio-specimen {
+  order: 2;
+}
+
+.pid-folio-side {
+  position: relative;
+  padding-top: 132px;
+}
+
+.pid-example {
+  position: absolute;
+  top: 22px;
+  left: 24px;
+  z-index: 3;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+}
+
+/* No. 1: identify */
+.pid-id-card {
+  overflow: visible;
+}
+
+.pid-id-card > img {
+  width: 100%;
+  aspect-ratio: 6 / 5;
+  object-fit: cover;
+}
+
+.pid-id-brackets {
+  position: absolute;
+  top: 26%;
+  left: 38%;
+  width: 44%;
+  height: 44%;
+  opacity: 0;
+  transform: scale(1.25);
+  transition:
+    transform 0.8s var(--spring) 0.5s,
+    opacity 0.4s ease 0.5s;
+}
+
+[data-shown] .pid-id-brackets {
+  opacity: 1;
+  transform: none;
+}
+
+.pid-id-brackets i {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border: 0 solid var(--leaf);
+}
+
+.pid-id-brackets i:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-width: 5px 0 0 5px;
+  border-top-left-radius: 14px;
+}
+
+.pid-id-brackets i:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-width: 5px 5px 0 0;
+  border-top-right-radius: 14px;
+}
+
+.pid-id-brackets i:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 5px 5px;
+  border-bottom-left-radius: 14px;
+}
+
+.pid-id-brackets i:nth-child(4) {
+  right: 0;
+  bottom: 0;
+  border-width: 0 5px 5px 0;
+  border-bottom-right-radius: 14px;
+}
+
+.pid-chip-static {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  z-index: 3;
+  opacity: 0;
+  transform: translate(-50%, 16px);
+  transition:
+    opacity 0.4s ease 1s,
+    transform 0.6s var(--spring) 1s;
+}
+
+[data-shown] .pid-chip-static {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* No. 2: diagnosis */
+.pid-dx {
+  position: relative;
+  padding: 0 150px 34px 0;
+}
+
+.pid-dx-print {
+  max-width: 380px;
+  rotate: -2deg;
+}
+
+.pid-dx-photo {
+  width: 100%;
+  background-color: var(--leaf-soft);
+}
+
+.pid-dx-card {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  width: 300px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 30px 50px -24px rgba(19, 38, 26, 0.55);
+  opacity: 0;
+  transform: translateY(28px) rotate(2deg);
+  transition:
+    transform 0.8s var(--ease-out) 0.35s,
+    opacity 0.5s ease 0.35s;
+}
+
+[data-shown] .pid-dx-card {
+  opacity: 1;
+  transform: rotate(1.5deg);
+}
+
+.pid-dx-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.2;
+}
+
+.pid-dx-head .pid-thumb {
+  width: 48px;
+  height: 48px;
+}
+
+.pid-dx-head > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.pid-dx-head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--alert);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.pid-dx-head small {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.pid-dx-steps {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  counter-reset: pid-dx;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pid-dx-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  counter-increment: pid-dx;
+}
+
+.pid-dx-steps li::before {
+  content: counter(pid-dx);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--leaf-soft);
+  color: var(--leaf-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pid-dx-note {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* No. 3: reminders */
+.pid-rem {
+  position: relative;
+  padding-bottom: 36px;
+}
+
+.pid-rem-print {
+  width: 60%;
+  rotate: 1.5deg;
+}
+
+.pid-rem-print img {
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  object-fit: cover;
+}
+
+.pid-rem-card {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  width: 58%;
+  max-width: 330px;
+  padding: 18px;
+  border-radius: 24px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 30px 50px -24px rgba(19, 38, 26, 0.55);
+}
+
+.pid-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pid-tabs span {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pid-tabs .is-on {
+  border-color: var(--leaf);
+  background: var(--leaf);
+  color: #fff;
+}
+
+.pid-rem-day {
+  display: flex;
+  justify-content: space-between;
+  margin: 14px 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pid-rem-day span {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pid-rem-card li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateX(16px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 140ms + 400ms);
+}
+
+[data-shown] .pid-rem-card li {
+  opacity: 1;
+  transform: none;
+}
+
+.pid-rem-card li > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pid-rem-card strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.pid-rem-card small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pid-rem-check {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--leaf);
+  border-radius: 7px;
+  color: transparent;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  transition-delay: 1.6s;
+}
+
+[data-shown] .pid-rem-card li:first-child .pid-rem-check {
+  background: var(--leaf);
+  color: #fff;
+}
+
+.pid-rem-toast {
+  position: absolute;
+  top: 26px;
+  right: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 290px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.97);
+  color: var(--ink);
+  box-shadow: 0 20px 40px -18px rgba(19, 38, 26, 0.6);
+  line-height: 1.25;
+  opacity: 0;
+  transform: translateY(-16px) scale(0.95);
+  transition:
+    opacity 0.5s ease 1.1s,
+    transform 0.7s var(--spring) 1.1s;
+}
+
+[data-shown] .pid-rem-toast {
+  opacity: 1;
+  transform: none;
+}
+
+.pid-rem-toast img {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9px;
+}
+
+.pid-rem-toast > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pid-rem-toast strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pid-rem-toast small {
+  font-size: 13px;
+}
+
+/* ---------- Indoors and out: four plant tags on a twine ---------- */
+
+.pid-places {
+  position: relative;
+  padding: 128px 0 120px;
+  overflow: hidden;
+  background: var(--clay-field);
+}
+
+.pid-line-scroll {
+  margin-top: 56px;
+}
+
+.pid-line {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin-inline: auto;
+  padding: 64px var(--gutter) 24px;
+}
+
+.pid-line-twine {
+  position: absolute;
+  top: 0;
+  left: var(--gutter);
+  width: calc(100% - var(--gutter) * 2);
+  height: 48px;
+  overflow: visible;
+}
+
+/* The twine's two nails. */
+.pid-line::before,
+.pid-line::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f3e3bd, #9c8350 70%);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+.pid-line::before {
+  left: calc(var(--gutter) - 6px);
+}
+
+.pid-line::after {
+  right: calc(var(--gutter) - 6px);
+}
+
+.pid-hang {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  filter: drop-shadow(0 18px 16px rgba(70, 22, 6, 0.32));
+  transform-origin: 50% calc(var(--ty) - 64px);
+  rotate: var(--tilt);
+}
+
+.pid-hang[data-shown] {
+  animation: pid-swing 2s ease-out both;
+  animation-delay: calc(var(--reveal-delay, 0ms) + 150ms);
+}
+
+@media (hover: hover) {
+  .pid-hang[data-shown]:hover {
+    animation: pid-swing-soft 1.5s ease-out;
+  }
+
+  .pid-hang:hover img {
+    filter: none;
+  }
+}
+
+.pid-hang::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--ty) - 64px);
+  left: 50%;
+  z-index: 2;
+  width: 1.5px;
+  height: calc(64px - var(--ty) + 21px);
+  margin-left: -0.75px;
+  background: var(--twine);
+}
+
+.pid-hang-tag {
+  --cut: 26px;
+  position: relative;
+  flex: 1;
+  padding: 46px 16px 24px;
+  background: var(--paper) var(--grain);
+  color: var(--forest);
+  clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%, 0 var(--cut));
+  -webkit-mask: radial-gradient(circle at 50% 21px, transparent 6px, #000 6.6px);
+  mask: radial-gradient(circle at 50% 21px, transparent 6px, #000 6.6px);
+}
+
+.pid-hang-tag::before {
+  content: '';
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border: 3.5px solid var(--kraft-deep);
+  border-radius: 50%;
+}
+
+.pid-hang-tag img {
+  width: 100%;
+  aspect-ratio: 6 / 5;
+  object-fit: cover;
+  filter: sepia(0.22) saturate(0.88);
+  transition: filter 0.6s ease;
+}
+
+.pid-hang figcaption {
+  padding: 18px 4px 0;
+  text-align: center;
+}
+
+.pid-hang h3 {
+  padding-top: 0.14em;
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.pid-hang em {
+  display: block;
+  margin-top: 3px;
+  color: var(--clay);
+  font-size: 15px;
+}
+
+.pid-hang p {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(31, 61, 43, 0.3);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---------- How it works: three growth stages on a soil line ---------- */
+
+.pid-growth {
+  position: relative;
+  padding: 128px 0 132px;
+  overflow: hidden;
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.pid-stages {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+  margin-top: 40px;
+}
+
+/* One long strip of soil under the three plants. */
+.pid-stages::before {
+  content: '';
+  position: absolute;
+  top: 250px;
+  left: 50%;
+  width: 100vw;
+  height: 54px;
+  margin-left: -50vw;
+  border-top: 3px solid #4b3a28;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255, 240, 210, 0.1) 1.2px, transparent 1.8px) 0 0 / 23px 17px,
+    radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.32) 1.6px, transparent 2.2px) 0 0 / 31px 21px,
+    var(--soil);
+}
+
+.pid-stage {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.pid-stage-art {
+  position: relative;
+  display: block;
+  height: 300px;
+}
+
+.pid-art {
+  display: block;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.pid-stage-no {
+  position: absolute;
+  top: 260px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-left: 84px;
+  border-radius: 50%;
+  background: var(--sun);
+  color: var(--forest);
+  box-shadow: 0 0 0 3px var(--soil);
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pid-stage-no > span {
+  padding-top: 0.16em;
+}
+
+.pid-stage-text {
+  display: block;
+  max-width: 330px;
+  margin: 40px auto 0;
+}
+
+.pid-stage h3 {
+  font-family: var(--display);
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.pid-stage p {
+  margin-top: 10px;
+  color: rgba(246, 240, 227, 0.78);
+  font-size: 16.5px;
+  line-height: 1.55;
+}
+
+.pid-art-plant {
+  transform-box: view-box;
+  transform-origin: 120px 202px;
+  opacity: 0;
+  scale: 0.15;
+  transition:
+    scale 1.3s var(--spring),
+    opacity 0.4s ease;
+  transition-delay: calc(var(--reveal-delay, 0ms) + 250ms);
+}
+
+[data-shown] .pid-art-plant {
+  opacity: 1;
+  scale: 1;
+}
+
+.pid-leaf-a {
+  fill: var(--leaf);
+}
+
+.pid-leaf-b {
+  fill: #35c088;
+}
+
+.pid-leaf-rib {
+  fill: none;
+  stroke: rgba(6, 58, 34, 0.45);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.pid-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pid-sway 4.8s ease-in-out infinite alternate;
+}
+
+@keyframes pid-sway {
+  from {
+    rotate: -6deg;
+  }
+
+  to {
+    rotate: 6deg;
+  }
+}
+
+.pid-art-stem {
+  fill: none;
+  stroke: #2aa871;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+}
+
+.pid-art-stem-thin {
+  stroke-width: 3;
+}
+
+.pid-art-root {
+  fill: none;
+  stroke: #a3825a;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.pid-art-seed {
+  fill: #c39458;
+}
+
+.pid-art-brackets path {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke 0.3s ease;
+  transition-delay: calc(var(--reveal-delay, 0ms) + 1400ms);
+}
+
+.pid-art-brackets {
+  transform-box: view-box;
+  transform-origin: 120px 164px;
+  scale: 1.3;
+  opacity: 0;
+  transition:
+    scale 0.6s var(--spring),
+    opacity 0.3s ease;
+  transition-delay: calc(var(--reveal-delay, 0ms) + 900ms);
+}
+
+[data-shown] .pid-art-brackets {
+  opacity: 1;
+  scale: 1;
+}
+
+[data-shown] .pid-art-brackets path {
+  stroke: var(--leaf);
+}
+
+.pid-art-marker > path:first-child {
+  fill: var(--paper);
+}
+
+.pid-art-marker-ink {
+  fill: none;
+  stroke: var(--forest);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.pid-art-drop {
+  fill: #7cc4ff;
+  opacity: 0;
+  animation: pid-drop 3.4s ease-in 2s infinite;
+}
+
+@keyframes pid-drop {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  62% {
+    opacity: 1;
+    translate: 0 46px;
+  }
+
+  74%,
+  100% {
+    opacity: 0;
+    translate: 0 54px;
+  }
+}
+
+.pid-art-bud {
+  fill: var(--sun);
+}
+
+.pid-art-bud-eye {
+  fill: var(--clay);
+}
+
+/* ---------- My Plants ---------- */
+
+.pid-collection {
+  padding: 136px 0 136px;
+  background: var(--cream) var(--grain);
+}
+
+.pid-collection-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+  align-items: center;
+  gap: 80px;
+}
+
+.pid-collection-visual {
+  position: relative;
+  padding: 0 120px 40px 8px;
+}
+
+.pid-arch {
+  aspect-ratio: 38 / 46;
+  max-width: 430px;
+  overflow: hidden;
+  border: 2px solid var(--forest);
+  border-radius: 999px 999px 4px 4px;
+  box-shadow:
+    0 0 0 6px var(--cream),
+    0 0 0 7.5px var(--forest);
+}
+
+.pid-arch img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pid-garden-card {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  padding: 22px 18px 18px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 34px 60px -28px rgba(19, 38, 26, 0.5);
+}
+
+.pid-garden-card-title {
+  margin-bottom: 12px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pid-garden-card ul {
+  display: grid;
+  gap: 2px;
+  margin-top: 12px;
+}
+
+.pid-garden-card li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 120ms + 300ms);
+}
+
+[data-shown] .pid-garden-card li {
+  opacity: 1;
+  transform: none;
+}
+
+.pid-garden-card li:first-child {
+  border-top: 0;
+}
+
+.pid-garden-thumb {
+  width: 56px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background-color: var(--leaf-soft);
+}
+
+.pid-garden-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.pid-garden-name strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.pid-garden-name small {
+  overflow: hidden;
+  padding-right: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pid-garden-care {
+  display: flex;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.pid-garden-care .pid-care {
+  width: 20px;
+  height: 20px;
+}
+
+.pid-garden-add {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--leaf);
+  color: #fff;
+  box-shadow: 0 10px 20px -8px rgba(0, 128, 79, 0.7);
+}
+
+.pid-collection-copy .pid-cta {
+  margin-top: 32px;
+}
+
+/* ---------- Screenshots, mounted like pressed specimens ---------- */
+
+.pid-pressed {
+  padding: 128px 0 120px;
+  background: var(--kraft) var(--grain);
+}
+
+.pid-mounts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 26px;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin: 60px auto 0;
+  padding: 22px var(--gutter) 12px;
+}
+
+.pid-mount {
+  position: relative;
+  padding: 12px 12px 14px;
+  background: var(--paper) var(--grain);
+  box-shadow:
+    0 1px 2px rgba(60, 45, 20, 0.16),
+    0 24px 34px -24px rgba(60, 45, 20, 0.6);
+  transition:
+    rotate 0.5s var(--spring),
+    translate 0.5s var(--spring);
+}
+
+.pid-mount:nth-child(odd) {
+  rotate: -1.2deg;
+}
+
+.pid-mount:nth-child(even) {
+  rotate: 1deg;
+  translate: 0 14px;
+}
+
+@media (hover: hover) {
+  .pid-mount:hover {
+    rotate: 0deg;
+    translate: 0 -6px;
+  }
+}
+
+.pid-mount img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.pid-mount figcaption {
+  margin-top: 12px;
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.pid-mount figcaption b {
+  color: var(--clay);
+}
+
+/* ---------- FAQ: the back of the packet ---------- */
+
+.pid-faq-section {
+  padding: 120px 0 136px;
+  background: var(--forest);
+}
+
+.pid-back {
+  position: relative;
+  max-width: 1040px;
+  margin-inline: auto;
+  padding: 0 56px 40px;
+  background: var(--kraft) var(--grain);
+  color: var(--ink);
+  box-shadow: 0 40px 60px -40px rgba(0, 0, 0, 0.6);
+}
+
+/* The gummed back flap, closed. */
+.pid-back-flap {
+  display: block;
+  height: 86px;
+  margin: 0 -56px 34px;
+  background: var(--kraft-deep) var(--grain);
+  clip-path: polygon(0 0, 100% 0, 100% 30%, 50% 100%, 0 30%);
+}
+
+.pid-back-head {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--forest);
+}
+
+.pid-back-head .pid-label-no {
+  min-width: 0;
+  padding: 0 26px 0 0;
+}
+
+.pid-back h2 {
+  padding-top: 0.12em;
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: clamp(30px, 4.2vw, 52px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pid-back-head p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 17px;
+  font-style: italic;
+}
+
+.pid-instructions {
+  margin-top: 8px;
+  column-gap: 56px;
+  column-rule: 1px solid var(--rule);
+  columns: 2;
+}
+
+.pid-instructions > div {
+  padding: 20px 0 20px;
+  border-bottom: 1px dashed rgba(31, 61, 43, 0.3);
+  break-inside: avoid;
+}
+
+.pid-instructions dt {
+  display: flex;
+  gap: 10px;
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.pid-instructions dt span {
+  flex-shrink: 0;
+  min-width: 1.3em;
+  color: var(--clay);
+}
+
+.pid-instructions dd {
+  margin: 8px 0 0 calc(1.3em + 10px);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.pid-back-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 2px solid var(--forest);
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pid-back-foot b {
+  color: var(--clay);
+  font-weight: 700;
+}
+
+/* ---------- Final call: a packet ready to plant, the button is its seal ---------- */
+
+.pid-final {
+  position: relative;
+  padding: 120px 0 136px;
+  overflow: hidden;
+  background: var(--sun);
+}
+
+.pid-packet-final {
+  max-width: 540px;
+  margin-inline: auto;
+  filter: drop-shadow(0 34px 34px rgba(120, 72, 0, 0.35));
+  rotate: 1.4deg;
+  animation: none;
+}
+
+.pid-packet-final[data-reveal] {
+  transform: translateY(40px);
+}
+
+.pid-packet-final[data-shown] {
+  transform: none;
+}
+
+.pid-packet-final .pid-packet-face {
+  padding-bottom: 100px;
+  background-color: var(--forest);
+  color: var(--cream);
+  text-align: center;
+}
+
+.pid-packet-final .pid-packet-face::before {
+  opacity: 0.55;
+}
+
+.pid-packet-final .pid-packet-band {
+  background: var(--cream);
+  color: var(--forest);
+}
+
+.pid-packet-final .pid-packet-title {
+  margin-top: 26px;
+  color: var(--cream);
+  font-size: clamp(34px, 10.4cqi, 58px);
+}
+
+.pid-window-icon {
+  display: grid;
+  place-items: center;
+  width: 42%;
+  margin: 0 auto;
+  border-color: var(--cream);
+  background: #fff;
+  box-shadow:
+    0 0 0 4px var(--forest),
+    0 0 0 5px var(--cream);
+}
+
+.pid-window-icon img {
+  width: 84%;
+  height: auto;
+  aspect-ratio: 1;
+  margin-top: 14%;
+  object-fit: contain;
+  animation: none;
+}
+
+.pid-final-lead {
+  max-width: 360px;
+  margin: 14px auto 0;
+  color: rgba(246, 240, 227, 0.82);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.pid-packet-final .pid-price {
+  margin-top: 18px;
+  color: rgba(246, 240, 227, 0.7);
+}
+
+.pid-packet-final .pid-price strong {
+  color: var(--cream);
+}
+
+.pid-flap-sealed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 calc(var(--slant) + 22px) 30px;
+}
+
+.pid-flap-sealed::before {
+  background-color: #17301f;
+}
+
+.pid-flap-sealed::after {
+  background: repeating-linear-gradient(90deg, rgba(246, 240, 227, 0.42) 0 8px, transparent 8px 14px);
+}
+
+.pid-flap-sealed .pid-terms {
+  max-width: 340px;
+  margin-top: 14px;
+  color: rgba(246, 240, 227, 0.66);
+  text-align: center;
+}
+
+/* The seal: a scalloped terracotta disc pressed over the fold. */
+.pid-seal {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 180px;
+  height: 180px;
+  margin-top: -90px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #fff8ec;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.35));
+  transition: transform 0.4s var(--spring);
+}
+
+.pid-seal-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: rotate 0.9s var(--spring);
+}
+
+.pid-seal-edge {
+  fill: var(--clay);
+  transition: fill 0.2s ease;
+}
+
+.pid-seal-ring {
+  fill: none;
+  stroke: rgba(255, 248, 236, 0.6);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 4;
+}
+
+.pid-seal-text {
+  position: relative;
+  padding-top: 0.24em;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pid-seal-text svg {
+  display: block;
+  margin: 6px auto 0;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.pid-seal:hover {
+  transform: scale(1.04);
+}
+
+.pid-seal:hover .pid-seal-shape {
+  rotate: -24deg;
+}
+
+.pid-seal:hover .pid-seal-edge {
+  fill: var(--clay-hover);
+}
+
+.pid-seal:hover .pid-seal-text svg {
+  transform: translateX(4px);
+}
+
+.pid-seal:active {
+  transform: scale(0.96);
+}
+
+.pid-seal:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 5px;
+}
+
+/* Seeds spilled on the bench around the packet. */
+.pid-seeds i {
+  position: absolute;
+  width: 14px;
+  height: 9px;
+  border-radius: 50% 50% 46% 54%;
+  background: linear-gradient(160deg, #c99555 0%, #a46e33 60%, #8a5a28 100%);
+  box-shadow: 0 1px 1px rgba(110, 70, 0, 0.3);
+}
+
+.pid-seeds i:nth-child(1) { top: 62%; left: calc(50% - 360px); rotate: 20deg; }
+.pid-seeds i:nth-child(2) { top: 68%; left: calc(50% - 330px); rotate: -35deg; }
+.pid-seeds i:nth-child(3) { top: 74%; left: calc(50% - 380px); rotate: 70deg; }
+.pid-seeds i:nth-child(4) { top: 79%; left: calc(50% - 318px); rotate: 5deg; }
+.pid-seeds i:nth-child(5) { top: 71%; left: calc(50% - 352px); rotate: -60deg; scale: 0.85; }
+.pid-seeds i:nth-child(6) { top: 30%; left: calc(50% + 330px); rotate: -20deg; }
+.pid-seeds i:nth-child(7) { top: 36%; left: calc(50% + 362px); rotate: 45deg; }
+.pid-seeds i:nth-child(8) { top: 25%; left: calc(50% + 372px); rotate: 80deg; scale: 0.85; }
+.pid-seeds i:nth-child(9) { top: 41%; left: calc(50% + 342px); rotate: -70deg; }
+
+/* ---------- Footer ---------- */
+
+.pid-footer {
+  position: relative;
+  padding: 38px 0 42px;
+  background: var(--forest-ink);
+  color: rgba(246, 240, 227, 0.62);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.pid-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(246, 240, 227, 0.25) 0 6px, transparent 6px 11px);
+}
+
+.pid-footer-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.pid-footer p {
+  max-width: 780px;
+}
+
+.pid-footer nav {
+  display: flex;
+  flex-shrink: 0;
+  gap: 22px;
+}
+
+.pid-footer a {
+  color: var(--cream);
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.pid-footer a:hover {
+  color: var(--sun);
+}
+
+/* ---------- Dock on phones: a plant tag with the button ---------- */
+
+.pid-dock {
+  position: fixed;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 12px;
+  z-index: 50;
+  display: none;
+  filter: drop-shadow(0 14px 20px rgba(19, 38, 26, 0.38));
+  transform: translateY(160%);
+  transition: transform 0.45s var(--ease-out);
+}
+
+.pid-dock.is-visible {
+  transform: none;
+}
+
+.pid-dock-tag {
+  --cut: 14px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 36px;
+  background: var(--paper) var(--grain);
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut));
+  -webkit-mask: radial-gradient(circle at 17px 50%, transparent 4.5px, #000 5px);
+  mask: radial-gradient(circle at 17px 50%, transparent 4.5px, #000 5px);
+}
+
+.pid-dock-tag::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2.5px solid var(--kraft-deep);
+  border-radius: 50%;
+}
+
+.pid-dock img {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.pid-dock-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.pid-dock-text strong {
+  padding-top: 0.12em;
+  color: var(--forest);
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.pid-dock-text small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pid-dock .pid-cta {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.pid-dock-short {
+  display: none;
+}
+
+/* ---------- Narrower desktops ---------- */
+
+@media (max-width: 1180px) {
+  .pid-hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+    gap: 48px;
+  }
+
+  .pid-folio {
+    gap: 44px;
+    padding: 52px 40px 44px;
+  }
+
+  .pid-collection-grid {
+    gap: 56px;
+  }
+}
+
+/* ---------- Tablets: one column ---------- */
+
+@media (max-width: 980px) {
+  .pid-hero {
+    padding-bottom: 88px;
+  }
+
+  .pid-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 56px;
+  }
+
+  .pid-packet {
+    width: 100%;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+
+  .pid-hero-demo {
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
+  }
+
+  .pid-folios {
+    padding: 96px 0 104px;
+  }
+
+  .pid-folio {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  .pid-folio-flip .pid-folio-specimen {
+    order: 0;
+  }
+
+  .pid-folio-specimen {
+    max-width: 560px;
+  }
+
+  .pid-folio-flip .pid-folio-specimen {
+    width: 100%;
+    justify-self: end;
+  }
+
+  .pid-folio-side {
+    padding-top: 0;
+  }
+
+  .pid-folio-side .pid-label {
+    max-width: none;
+  }
+
+  .pid-stamp {
+    top: -70px;
+    right: 6px;
+    z-index: 2;
+    width: 100px;
+    height: 100px;
+  }
+
+  .pid-places,
+  .pid-growth,
+  .pid-pressed,
+  .pid-faq-section,
+  .pid-final {
+    padding-block: 96px 104px;
+  }
+
+  .pid-collection {
+    padding: 104px 0 112px;
+  }
+
+  /* The twine of tags becomes a row you swipe. */
+  .pid-line-scroll {
+    margin-top: 40px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .pid-line-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pid-line {
+    grid-template-columns: repeat(4, 250px);
+    width: max-content;
+    max-width: none;
+    padding-bottom: 40px;
+  }
+
+  .pid-hang {
+    scroll-snap-align: start;
+  }
+
+  .pid-stages {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    max-width: 620px;
+    margin: 56px auto 0;
+  }
+
+  .pid-stages::before {
+    display: none;
+  }
+
+  .pid-stage {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    align-items: center;
+    gap: 24px;
+    text-align: left;
+  }
+
+  /* Each plant gets its own patch of soil. */
+  .pid-stage-art {
+    height: 150px;
+    overflow: hidden;
+    border-radius: 6px;
+    background:
+      linear-gradient(transparent 125px, #4b3a28 125px 127px, transparent 127px),
+      radial-gradient(circle at 30% 40%, rgba(255, 240, 210, 0.1) 1.2px, transparent 1.8px) 0 125px / 23px 17px no-repeat,
+      linear-gradient(transparent 125px, var(--soil) 125px);
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+
+  .pid-art {
+    width: 150px;
+    height: 150px;
+    translate: 0 0;
+  }
+
+  .pid-stage-no {
+    top: 108px;
+    right: 8px;
+    left: auto;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .pid-stage-text {
+    max-width: none;
+    margin: 0;
+  }
+
+  .pid-collection-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 64px;
+  }
+
+  .pid-collection-visual {
+    width: 100%;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  .pid-collection-copy .pid-label {
+    max-width: none;
+  }
+
+  .pid-mounts {
+    grid-template-columns: repeat(5, 230px);
+    width: auto;
+    max-width: none;
+    margin-top: 40px;
+    padding-bottom: 32px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--gutter);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .pid-mounts::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pid-mount {
+    scroll-snap-align: start;
+  }
+
+  .pid-seeds {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .pid-header-cta {
+    display: none;
+  }
+
+  .pid-dock {
+    display: block;
+  }
+
+  .pid-footer {
+    padding-bottom: 120px;
+  }
+
+  .pid-footer-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .pid-instructions {
+    columns: 1;
+  }
+
+  .pid-back {
+    padding: 0 28px 30px;
+  }
+
+  .pid-back-flap {
+    height: 56px;
+    margin: 0 -28px 28px;
+  }
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 640px) {
+  .pid {
+    --gutter: 16px;
+    --header-h: 64px;
+  }
+
+  .pid-ribbon {
+    font-size: 13px;
+  }
+
+  .pid-nametag-shape {
+    height: 44px;
+    padding-right: 14px;
+  }
+
+  .pid-nametag img {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+  }
+
+  .pid-nametag-text strong {
+    font-size: 14px;
+  }
+
+  .pid-nametag-text small {
+    display: none;
+  }
+
+  .pid-hero {
+    padding: calc(var(--header-h) + 8px) 0 72px;
+  }
+
+  .pid-hero-leaf-a {
+    top: -60px;
+    right: -170px;
+    width: 340px;
+  }
+
+  .pid-hero-leaf-b {
+    display: none;
+  }
+
+  .pid-packet {
+    rotate: 0deg;
+  }
+
+  @keyframes pid-packet-in {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+  }
+
+  .pid-packet-face {
+    padding: 22px 20px 22px;
+  }
+
+  .pid-packet-face::before {
+    inset: 9px 9px 7px;
+    outline-offset: 2px;
+  }
+
+  .pid-packet-band {
+    margin-bottom: 16px;
+    padding: 8px 10px 6px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+  }
+
+  .pid-packet-title {
+    font-size: clamp(23px, 8.4cqi, 40px);
+  }
+
+  .pid-packet-body {
+    grid-template-columns: 34% minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  .pid-window {
+    box-shadow:
+      0 0 0 3px var(--paper),
+      0 0 0 4px var(--forest);
+  }
+
+  .pid-lead {
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+
+  /* The spec table spans the packet under the window and the lead. */
+  .pid-packet-copy {
+    display: contents;
+  }
+
+  .pid-specs {
+    grid-column: 1 / -1;
+    margin-top: 2px;
+  }
+
+  .pid-specs > div {
+    padding: 10px 4px 9px;
+  }
+
+  .pid-specs dt {
+    font-size: 11.5px;
+  }
+
+  .pid-flap {
+    --slant: 18px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px 34px 24px;
+    text-align: center;
+  }
+
+  .pid-flap .pid-cta {
+    width: 100%;
+  }
+
+  .pid-price strong {
+    font-size: 28px;
+  }
+
+  .pid-cta {
+    min-height: 58px;
+    padding: 0 22px;
+    font-size: 16px;
+  }
+
+  .pid-label-no {
+    min-width: 66px;
+    padding: 14px 10px 10px;
+    font-size: 38px;
+  }
+
+  .pid-label-no small {
+    font-size: 13px;
+  }
+
+  .pid-label-name {
+    padding: 16px 16px 14px;
+  }
+
+  .pid-label-title {
+    font-size: clamp(22px, 6.6vw, 28px);
+  }
+
+  .pid-label-line {
+    font-size: 15px;
+  }
+
+  .pid-label-notes {
+    padding: 16px 16px 18px;
+  }
+
+  .pid-label-notes > p {
+    font-size: 16px;
+  }
+
+  .pid-folios {
+    padding: 72px 0 80px;
+  }
+
+  .pid-folio {
+    gap: 28px;
+    padding: 26px 14px 16px;
+    rotate: 0deg !important;
+  }
+
+  .pid-folio + .pid-folio {
+    margin-top: 40px;
+  }
+
+  .pid-stamp {
+    display: none;
+  }
+
+  .pid-print {
+    padding: 7px;
+  }
+
+  .pid-tape {
+    width: 78px;
+    height: 24px;
+  }
+
+  .pid-example {
+    top: 16px;
+    left: 16px;
+  }
+
+  .pid-chip-static {
+    bottom: 20px;
+  }
+
+  .pid-dx {
+    padding: 0 0 132px;
+  }
+
+  .pid-dx-print {
+    width: 78%;
+  }
+
+  .pid-dx-card {
+    width: 80%;
+    max-width: 300px;
+    padding: 14px 15px;
+  }
+
+  .pid-rem {
+    padding-bottom: 214px;
+  }
+
+  .pid-rem-print {
+    width: 66%;
+  }
+
+  .pid-rem-card {
+    width: 86%;
+    padding: 15px;
+  }
+
+  .pid-rem-card .pid-tabs {
+    flex-wrap: nowrap;
+    gap: 4px;
+    font-size: 11.5px;
+  }
+
+  .pid-rem-card .pid-tabs span {
+    padding: 5px 8px;
+  }
+
+  .pid-rem-toast {
+    top: 18px;
+    max-width: 66%;
+  }
+
+  .pid-rem-toast small {
+    font-size: 12px;
+  }
+
+  .pid-places,
+  .pid-growth,
+  .pid-pressed,
+  .pid-faq-section,
+  .pid-final {
+    padding-block: 72px 80px;
+  }
+
+  .pid-line {
+    grid-template-columns: repeat(4, 232px);
+    gap: 18px;
+  }
+
+  .pid-stage {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .pid-stage-art {
+    height: 124px;
+    background:
+      linear-gradient(transparent 104px, #4b3a28 104px 106px, transparent 106px),
+      linear-gradient(transparent 104px, var(--soil) 104px);
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+
+  .pid-art {
+    width: 124px;
+    height: 124px;
+  }
+
+  .pid-stage-no {
+    top: 92px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+
+  .pid-stage h3 {
+    font-size: 20px;
+  }
+
+  .pid-stage p {
+    margin-top: 6px;
+    font-size: 15px;
+  }
+
+  .pid-collection {
+    padding: 80px 0 88px;
+  }
+
+  .pid-collection-visual {
+    padding: 0 0 226px;
+  }
+
+  .pid-arch {
+    width: 70%;
+  }
+
+  .pid-garden-card {
+    width: 82%;
+    max-width: 320px;
+    padding: 18px 14px 14px;
+  }
+
+  .pid-garden-thumb {
+    width: 46px;
+  }
+
+  .pid-collection-copy .pid-cta {
+    width: 100%;
+  }
+
+  .pid-mounts {
+    grid-template-columns: repeat(5, 62vw);
+    gap: 18px;
+  }
+
+  .pid-back {
+    padding: 0 18px 24px;
+  }
+
+  .pid-back-flap {
+    height: 44px;
+    margin: 0 -18px 22px;
+  }
+
+  .pid-back-head {
+    gap: 16px;
+    padding-bottom: 18px;
+  }
+
+  .pid-back-head .pid-label-no {
+    padding-right: 16px;
+  }
+
+  .pid-back h2 {
+    font-size: clamp(24px, 7.4vw, 32px);
+  }
+
+  .pid-back-head p {
+    font-size: 15.5px;
+  }
+
+  .pid-instructions dt {
+    font-size: 17.5px;
+  }
+
+  .pid-instructions dd {
+    margin-left: 0;
+    font-size: 15.5px;
+  }
+
+  .pid-back-foot {
+    flex-direction: column;
+    font-size: 13px;
+  }
+
+  .pid-packet-final {
+    rotate: 0deg;
+  }
+
+  .pid-packet-final .pid-packet-title {
+    font-size: clamp(30px, 11cqi, 44px);
+  }
+
+  .pid-final-lead {
+    font-size: 16px;
+  }
+
+  .pid-seal {
+    width: 156px;
+    height: 156px;
+    margin-top: -78px;
+  }
+
+  .pid-seal-text {
+    font-size: 13.5px;
+  }
+
+  .pid-packet-final .pid-packet-face {
+    padding-bottom: 92px;
+  }
+}
+
+@media (max-width: 400px) {
+  .pid-dock-long {
+    display: none;
+  }
+
+  .pid-dock-short {
+    display: inline;
+  }
+
+  .pid-ribbon p {
+    font-size: 12.5px;
+  }
+}
+
+@media (max-width: 340px) {
+  .pid-ribbon {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .pid-avatar {
+    display: none;
+  }
+
+  .pid-nametag-text strong {
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+  }
+
+  .pid-packet-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pid-window {
+    width: 56%;
+    margin: 4px auto 0;
+  }
+
+  .pid-specs dd {
+    font-size: 17px;
+  }
+
+  .pid-specs dt {
+    font-size: 10.5px;
+  }
+
+  .pid-flap {
+    padding-inline: 26px;
+  }
+
+  .pid-cta {
+    padding: 0 16px;
+    font-size: 14.5px;
+    letter-spacing: 0.05em;
+  }
+
+  .pid-label-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pid-label-no {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: baseline;
+    gap: 6px;
+    padding: 12px 16px 0;
+    border-right: 0;
+    font-size: 26px;
+  }
+
+  .pid-line {
+    grid-template-columns: repeat(4, 210px);
+  }
+
+  .pid-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pid-stage-art {
+    width: 124px;
+  }
+
+  .pid-dock-text small {
+    display: none;
+  }
+
+  .pid-rem {
+    padding-bottom: 250px;
+  }
+
+  .pid-rem-card {
+    width: 92%;
+  }
+
+  .pid-rem-toast {
+    display: none;
+  }
+
+  .pid-packet-band span + span {
+    display: none;
+  }
+
+  .pid-packet-band {
+    justify-content: center;
+  }
+
+  .pid-rem-card .pid-tabs {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Reduced motion: everything in its final place ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pid *,
+  .pid *::before,
+  .pid *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .pid-art-drop {
+    opacity: 0;
+  }
+}

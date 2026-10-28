@@ -1,0 +1,12 @@
+.progressive-blur {
+  position: absolute;
+  inset: 0;
+  /* Keeps the layers' z-indexes inside, so they never cover sibling content. */
+  z-index: 0;
+  pointer-events: none;
+}
+
+.progressive-blur-layer {
+  position: absolute;
+  inset: 0;
+}

@@ -1,0 +1,3294 @@
+/*
+ * Screen Mirroring landing: small screen to big screen. Dark rooms in the icon's navy, lit only by
+ * what is on the screens (the picture itself, blurred). Unbounded for wide display type, Onest for
+ * text, the app's cast green for actions, white for the "lights on" sections.
+ */
+.smr {
+  --navy: #071331;
+  --navy-2: #0c1b44;
+  --navy-3: #16295c;
+  --night: #030915;
+  --green: #2bd47c;
+  --green-hi: #5ae39d;
+  --white: #ffffff;
+  --paper: #eef1f7;
+  --ink: #071331;
+  --muted: #535e78;
+  --muted-dark: rgba(255, 255, 255, 0.7);
+  --line: rgba(7, 19, 49, 0.12);
+  --line-dark: rgba(255, 255, 255, 0.13);
+  --app: #121419;
+  --app-card: rgba(255, 255, 255, 0.07);
+  --app-green: #2fd27a;
+  --web: #f6f3ec;
+  --display: 'Unbounded Variable', 'Onest Variable', system-ui, sans-serif;
+  --text: 'Onest Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ease-out: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --max: 1280px;
+  --gutter: 32px;
+  /* From the content edge to the viewport edge: what a full-bleed element has to reach. */
+  --edge: max(var(--gutter), calc((100vw - var(--max)) / 2));
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--text);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.smr *,
+.smr *::before,
+.smr *::after {
+  box-sizing: border-box;
+}
+
+/* Resets without specificity, so component classes always win. */
+:where(.smr) :where(h1, h2, h3, h4, p, ol, ul, figure) {
+  margin: 0;
+}
+
+:where(.smr) :where(button) {
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(.smr) :where(a) {
+  color: inherit;
+}
+
+:where(.smr) :where(img) {
+  display: block;
+}
+
+.smr-wrap {
+  width: 100%;
+  max-width: calc(var(--max) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.smr-light {
+  background: var(--white);
+  color: var(--ink);
+}
+
+/* ---------- Type ---------- */
+
+.smr-h1 {
+  position: relative;
+  z-index: 3;
+  font-family: var(--display);
+}
+
+.smr-h1-small {
+  display: block;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(16px, 2.75vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  animation: smr-in 0.9s var(--ease-out) 0.1s both;
+}
+
+/* JS fits this line to the full content width; the clamp is the fallback before it runs. */
+.smr-h1-big {
+  display: block;
+  margin-top: 0.04em;
+  font-size: clamp(36px, 11vw, 170px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  white-space: nowrap;
+}
+
+/* The big line grows from phone size to screen size. */
+.smr-h1-big > span {
+  display: inline-block;
+  padding-right: 0.05em;
+  transform-origin: 0 80%;
+  animation: smr-grow 1.3s var(--ease-out) 0.3s both;
+}
+
+@keyframes smr-grow {
+  from {
+    opacity: 0;
+    transform: scale(0.26);
+  }
+
+  30% {
+    opacity: 1;
+  }
+}
+
+@keyframes smr-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes smr-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.smr-h2 {
+  max-width: 15em;
+  font-family: var(--display);
+  font-size: clamp(28px, 4.2vw, 58px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+/* Heading device: a TV info line under the heading. */
+.smr-head {
+  margin-bottom: 64px;
+}
+
+.smr-osd {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: 820px;
+  margin-top: 26px;
+  color: var(--muted-dark);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.smr-osd-bar {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.smr-osd-bar b {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--green);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.8s var(--ease-out) 0.4s;
+}
+
+.smr [data-shown] .smr-osd-bar b {
+  transform: scaleX(var(--to, 0));
+}
+
+.smr-osd-no {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.smr-head-text {
+  max-width: 560px;
+  margin-top: 24px;
+  color: var(--muted-dark);
+  font-size: 19px;
+}
+
+.smr-light .smr-osd {
+  color: var(--muted);
+}
+
+.smr-light .smr-osd-bar {
+  background: var(--line);
+}
+
+.smr-light .smr-osd-bar b {
+  background: var(--navy);
+}
+
+.smr-light .smr-osd-no {
+  color: var(--ink);
+}
+
+.smr-light .smr-head-text {
+  color: var(--muted);
+}
+
+/* ---------- Buttons ---------- */
+
+.smr-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--green);
+  color: var(--navy);
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.smr-btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.smr-btn:hover {
+  background: var(--green-hi);
+}
+
+.smr-btn:hover svg {
+  transform: translateX(4px);
+}
+
+.smr-btn:active {
+  transform: scale(0.97);
+}
+
+/* Focus looks like a TV's focus ring. */
+.smr-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--navy),
+    0 0 0 5px var(--white);
+}
+
+.smr-btn-ink {
+  background: var(--navy);
+  color: var(--white);
+}
+
+.smr-btn-ink:hover {
+  background: var(--navy-3);
+}
+
+.smr-light .smr-btn:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--white),
+    0 0 0 5px var(--navy);
+}
+
+.smr-btn-small {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 11px;
+  font-size: 14px;
+}
+
+.smr-terms {
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.smr-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin-bottom: 14px;
+  color: var(--muted-dark);
+  font-size: 15px;
+}
+
+.smr-price strong {
+  color: var(--white);
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* ---------- Creator ribbon and header ---------- */
+
+.smr-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 16px;
+  background: var(--night);
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 14px;
+}
+
+.smr-ribbon p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smr-ribbon strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.smr-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.smr-ribbon-deal {
+  flex-shrink: 0;
+  color: var(--green);
+  font-weight: 700;
+}
+
+/*
+ * Sticky header with a progressive blur (see ProgressiveBlur). The header itself stays free of
+ * filter/opacity/backdrop-filter, or the blur layers stop seeing the page behind it.
+ */
+.smr-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  color: var(--ink);
+  transition: color 0.35s ease;
+}
+
+.smr-header[data-tone='dark'] {
+  color: var(--white);
+}
+
+.smr-header-backdrop {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100% + 40px);
+  pointer-events: none;
+}
+
+.smr-header-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.smr-header-tint-light {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.62) 50%, rgba(255, 255, 255, 0) 100%);
+}
+
+.smr-header-tint-dark {
+  background: linear-gradient(to bottom, rgba(5, 14, 37, 0.9) 0%, rgba(5, 14, 37, 0.58) 50%, rgba(5, 14, 37, 0) 100%);
+}
+
+.smr-header[data-stuck='true'][data-tone='light'] .smr-header-tint-light,
+.smr-header[data-stuck='true'][data-tone='dark'] .smr-header-tint-dark {
+  opacity: 1;
+}
+
+/* Like the top bar of a TV home screen: app, sections, the time. */
+.smr-header-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 72px;
+}
+
+.smr-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  border-radius: 10px;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.smr-identity img {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 9px;
+}
+
+.smr-identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.smr-nav {
+  display: flex;
+  gap: 2px;
+  margin-left: 20px;
+}
+
+.smr-nav a {
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  opacity: 0.74;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.smr-nav a:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  opacity: 1;
+}
+
+.smr-identity:focus-visible,
+.smr-nav a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.smr-header-end {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 22px;
+  margin-left: auto;
+}
+
+.smr-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  opacity: 0.82;
+  white-space: nowrap;
+}
+
+.smr-clock svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ---------- Hero ---------- */
+
+.smr-hero {
+  position: relative;
+  padding: 26px 0 104px;
+  overflow: clip;
+}
+
+.smr-hero > .smr-wrap {
+  position: relative;
+}
+
+.smr-proof {
+  position: absolute;
+  top: 0.5em;
+  right: var(--gutter);
+  z-index: 3;
+  display: flex;
+  gap: 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  animation: smr-fade 1s ease 0.9s both;
+}
+
+.smr-proof li + li::before {
+  content: '';
+  display: inline-block;
+  width: 1px;
+  height: 12px;
+  margin: 0 14px;
+  background: var(--line-dark);
+  vertical-align: -1px;
+}
+
+.smr-hero-body {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 40px;
+  margin-top: 18px;
+}
+
+.smr-hero-copy {
+  position: relative;
+  z-index: 3;
+  padding-top: 40px;
+  animation: smr-in 0.9s var(--ease-out) 0.55s both;
+}
+
+.smr-lead {
+  color: var(--muted-dark);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.smr-offer {
+  margin-top: 30px;
+}
+
+.smr-offer .smr-btn {
+  width: 100%;
+}
+
+.smr-hero-stage {
+  --bleed: 9vw;
+  width: calc(100% + var(--edge) + var(--bleed));
+  animation: smr-stage-in 1.3s var(--ease-out) 0.45s both;
+}
+
+@keyframes smr-stage-in {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+
+/* ---------- The cast demo: a phone in front of a huge TV ---------- */
+
+.smr-stage {
+  --glow: #2a4aa8;
+  --tv-left: 13cqw;
+  --tv-width: 87cqw;
+  --phone: 18cqw;
+  --phone-top: 11cqw;
+  position: relative;
+}
+
+.smr-hero-stage {
+  container: smr-stage / inline-size;
+}
+
+.smr-stage-screens {
+  position: relative;
+  height: calc(var(--tv-width) * 0.5625 + 0.8cqw);
+}
+
+/* Light the screen throws onto the wall: the picture itself, blurred. */
+.smr-ambient {
+  position: absolute;
+  top: 0;
+  left: var(--tv-left);
+  z-index: 0;
+  width: var(--tv-width);
+  aspect-ratio: 16 / 9;
+  pointer-events: none;
+}
+
+.smr-ambient::before {
+  content: '';
+  position: absolute;
+  inset: -6% -4%;
+  border-radius: 40%;
+  background: var(--glow);
+  opacity: 0.16;
+  filter: blur(70px);
+  transition: background-color 1.4s ease;
+}
+
+.smr-ambient img {
+  position: absolute;
+  inset: -16% -10%;
+  width: 120%;
+  height: 132%;
+  object-fit: cover;
+  opacity: 0;
+  filter: blur(64px) saturate(1.2);
+  transition: opacity 1.4s ease 0.7s;
+}
+
+.smr-ambient img.is-on {
+  opacity: 0.5;
+}
+
+.smr-tv {
+  position: absolute;
+  top: 0;
+  left: var(--tv-left);
+  z-index: 2;
+  width: var(--tv-width);
+  padding: 0.4cqw;
+  border-radius: 0.5cqw;
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 3cqw 6cqw -2cqw rgba(0, 0, 0, 0.75);
+}
+
+.smr-tv-screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.2cqw;
+  background: #000;
+  container-type: inline-size;
+}
+
+/* Glass glare over every program. */
+.smr-tv-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.04) 0 36%, transparent 36.2%);
+  pointer-events: none;
+}
+
+.smr-tv-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.smr-tv-layer.is-on {
+  opacity: 1;
+}
+
+/* When a picture is on its way, the TV switches as it lands. */
+.smr-stage[data-tv='photo'] .smr-tv-layer,
+.smr-stage[data-tv='video'] .smr-tv-layer {
+  transition-delay: 0.95s;
+}
+
+.smr-tv-off {
+  background: radial-gradient(120% 90% at 30% 0%, #0e121b 0%, #040609 60%);
+}
+
+.smr-tv-ready {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6cqw;
+  background: #0a1838;
+  color: var(--white);
+  text-align: center;
+}
+
+.smr-tv-ready img {
+  width: 9cqw;
+  height: 9cqw;
+  margin-bottom: 0.8cqw;
+  border-radius: 2.2cqw;
+}
+
+.smr-tv-ready strong {
+  font-family: var(--display);
+  font-size: 4.2cqw;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.smr-tv-ready span {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.9cqw;
+  font-weight: 500;
+}
+
+.smr-tv-ready.is-on img {
+  animation: smr-pop 0.7s var(--ease-out) both;
+}
+
+@keyframes smr-pop {
+  from {
+    opacity: 0;
+    scale: 0.8;
+  }
+}
+
+.smr-tv-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.smr-kenburns {
+  animation: smr-kenburns 7s ease-out both;
+}
+
+@keyframes smr-kenburns {
+  to {
+    transform: scale(1.12) translate(-3%, 2%);
+  }
+}
+
+.smr-tv-controls {
+  position: absolute;
+  right: 4cqw;
+  bottom: 5cqw;
+  left: 4cqw;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
+  color: var(--white);
+  font-size: 1.7cqw;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  animation: smr-fade 0.5s ease 1s both;
+}
+
+.smr-tv-controls::before {
+  content: '';
+  position: absolute;
+  inset: -6cqw -4cqw -6cqw;
+  z-index: -1;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+}
+
+.smr-bar {
+  display: block;
+  flex: 1;
+  height: 0.6cqw;
+  overflow: hidden;
+  border-radius: 1cqw;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.smr-bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--white);
+}
+
+.smr-bar.is-playing i {
+  animation: smr-progress 24s linear both;
+}
+
+@keyframes smr-progress {
+  to {
+    width: 100%;
+  }
+}
+
+/* Mirroring: the phone's portrait screen in the middle of the landscape TV. */
+.smr-tv-mirror {
+  display: flex;
+  justify-content: center;
+  background: #000;
+}
+
+.smr-mirror-box {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 9 / 19.5;
+  overflow: hidden;
+  background: var(--web);
+  container-type: inline-size;
+}
+
+/* A phone body that sizes itself from --w. */
+.smr-device {
+  --w: 220px;
+  position: relative;
+  width: var(--w);
+  aspect-ratio: 9 / 19.5;
+  padding: calc(var(--w) * 0.028);
+  border-radius: calc(var(--w) * 0.155);
+  background: #0d0f13;
+  box-shadow:
+    inset 0 0 0 calc(var(--w) * 0.009) #3b404b,
+    0 calc(var(--w) * 0.14) calc(var(--w) * 0.24) calc(var(--w) * -0.08) rgba(0, 0, 0, 0.6);
+}
+
+.smr-device .smr-phone-screen {
+  height: 100%;
+  border-radius: calc(var(--w) * 0.128);
+}
+
+.smr-phone {
+  --w: var(--phone);
+  position: absolute;
+  top: var(--phone-top);
+  left: 0;
+  z-index: 6;
+}
+
+.smr-phone-screen {
+  position: relative;
+  overflow: hidden;
+  background: var(--app);
+  color: var(--white);
+  container-type: inline-size;
+  transition: background-color 0.4s ease;
+}
+
+.smr-phone-screen[data-web='true'] {
+  background: var(--web);
+}
+
+/* iOS home indicator */
+.smr-phone-screen::after {
+  content: '';
+  position: absolute;
+  bottom: 2.2cqw;
+  left: 50%;
+  z-index: 9;
+  width: 36cqw;
+  height: 1.3cqw;
+  border-radius: 1cqw;
+  background: rgba(255, 255, 255, 0.55);
+  translate: -50% 0;
+}
+
+.smr-phone-screen[data-web='true']::after {
+  background: rgba(7, 19, 49, 0.55);
+}
+
+.smr-phone-screen[data-web='true'] > .smr-status {
+  color: var(--ink);
+}
+
+.smr-island {
+  position: absolute;
+  top: 2.8cqw;
+  left: 50%;
+  z-index: 9;
+  width: 29cqw;
+  height: 8.4cqw;
+  border-radius: 5cqw;
+  background: #000;
+  translate: -50% 0;
+}
+
+.smr-status {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 13cqw;
+  padding: 1.4cqw 7.5cqw 0 9cqw;
+  color: inherit;
+  font-size: 4.4cqw;
+  font-weight: 600;
+}
+
+.smr-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 1.4cqw;
+}
+
+.smr-status svg {
+  width: 4.2cqw;
+  height: 4.2cqw;
+}
+
+.smr-signal {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5cqw;
+  height: 3.2cqw;
+}
+
+.smr-signal b {
+  width: 0.8cqw;
+  border-radius: 0.3cqw;
+  background: currentColor;
+}
+
+.smr-signal b:nth-child(1) {
+  height: 35%;
+}
+
+.smr-signal b:nth-child(2) {
+  height: 55%;
+}
+
+.smr-signal b:nth-child(3) {
+  height: 78%;
+}
+
+.smr-signal b:nth-child(4) {
+  height: 100%;
+}
+
+.smr-battery {
+  position: relative;
+  width: 6.2cqw;
+  height: 3cqw;
+  border-radius: 0.9cqw;
+  background: currentColor;
+}
+
+.smr-battery::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -0.9cqw;
+  width: 0.5cqw;
+  height: 1.2cqw;
+  border-radius: 0 0.3cqw 0.3cqw 0;
+  background: currentColor;
+  opacity: 0.5;
+  translate: 0 -50%;
+}
+
+/* Phone screens slide in like app navigation. */
+.smr-ps {
+  position: absolute;
+  inset: 13cqw 0 0;
+  opacity: 0;
+  transform: translateX(8cqw);
+  transition:
+    opacity 0.35s ease,
+    transform 0.45s var(--ease-out);
+  pointer-events: none;
+}
+
+.smr-ps.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.smr-ps-web {
+  inset: 0;
+}
+
+.smr-app {
+  padding: 1cqw 5cqw 0;
+  font-size: 4cqw;
+  line-height: 1.25;
+}
+
+.smr-app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2cqw;
+  height: 12cqw;
+  margin-bottom: 3cqw;
+}
+
+.smr-app-bar strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 4.8cqw;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smr-app-round,
+.smr-app-cast {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 9cqw;
+  height: 9cqw;
+  border-radius: 50%;
+  background: var(--app-card);
+}
+
+.smr-app-cast {
+  background: var(--app-green);
+  color: #062614;
+}
+
+.smr-app-round svg,
+.smr-app-cast svg {
+  width: 4.8cqw;
+  height: 4.8cqw;
+}
+
+.smr-app-title {
+  font-size: 6.6cqw;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.smr-app-sub {
+  margin-top: 1.6cqw;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 3.8cqw;
+}
+
+.smr-app-note {
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
+  margin-top: 4cqw;
+  padding: 3cqw 3.4cqw;
+  border-radius: 3cqw;
+  background: var(--app-card);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 3.4cqw;
+}
+
+.smr-app-note svg {
+  width: 4cqw;
+  height: 4cqw;
+  flex-shrink: 0;
+  color: var(--app-green);
+}
+
+.smr-devices {
+  margin-top: 3cqw;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 3.6cqw;
+  background: var(--app-card);
+  list-style: none;
+}
+
+.smr-devices li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3.4cqw 3.8cqw;
+  animation: smr-found 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 260ms + 200ms);
+  transition: background-color 0.3s ease;
+}
+
+.smr-devices li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+@keyframes smr-found {
+  from {
+    opacity: 0;
+    transform: translateY(2cqw);
+  }
+}
+
+.smr-devices strong {
+  display: block;
+  font-size: 4.2cqw;
+  font-weight: 600;
+}
+
+.smr-devices small {
+  display: block;
+  margin-top: 0.4cqw;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 3.2cqw;
+}
+
+.smr-devices svg {
+  width: 4.4cqw;
+  height: 4.4cqw;
+  opacity: 0.4;
+}
+
+.smr-devices li.is-tapped {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.smr-devices li.is-connected small {
+  color: var(--app-green);
+  font-weight: 600;
+}
+
+/* A finger tap: a ring that grows and fades on the tapped control. */
+.smr-devices li.is-tapped::after,
+.smr-tile.is-tapped::after,
+.smr-thumbs .is-picked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14cqw;
+  height: 14cqw;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  translate: -50% -50%;
+  animation: smr-tap 0.7s ease-out both;
+  pointer-events: none;
+}
+
+@keyframes smr-tap {
+  from {
+    opacity: 1;
+    scale: 0.3;
+  }
+
+  to {
+    opacity: 0;
+    scale: 1.4;
+  }
+}
+
+.smr-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6cqw;
+  margin-top: 5cqw;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 3.6cqw;
+  font-weight: 500;
+}
+
+.smr-refresh svg {
+  width: 4cqw;
+  height: 4cqw;
+}
+
+.smr-refresh.is-searching svg {
+  animation: smr-spin 1s linear infinite;
+}
+
+@keyframes smr-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Home: the app's six tiles */
+.smr-tiles {
+  display: grid;
+  gap: 2.4cqw;
+}
+
+.smr-tiles-grid {
+  grid-template-columns: 1fr 1fr;
+}
+
+.smr-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2.4cqw;
+  min-height: 33cqw;
+  padding: 3.4cqw;
+  border-radius: 3.6cqw;
+  background: color-mix(in srgb, var(--c) 34%, #15171d);
+  transition:
+    transform 0.35s var(--ease-out),
+    box-shadow 0.35s ease;
+}
+
+.smr-tile-wide {
+  flex-direction: row;
+  align-items: center;
+  min-height: 18cqw;
+}
+
+.smr-tile i {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 8.4cqw;
+  height: 8.4cqw;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 70%, #000);
+}
+
+.smr-tile svg {
+  width: 4.4cqw;
+  height: 4.4cqw;
+}
+
+.smr-tile strong {
+  display: block;
+  font-size: 3.8cqw;
+  font-weight: 650;
+}
+
+.smr-tile small {
+  display: block;
+  margin-top: 0.4cqw;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 3cqw;
+}
+
+.smr-tile.is-tapped {
+  transform: scale(0.96);
+}
+
+.smr-tile.is-focus {
+  box-shadow: 0 0 0 0.9cqw var(--white);
+  transform: scale(1.035);
+}
+
+.smr-app-label {
+  margin: 5cqw 0 2.6cqw;
+  font-size: 4.4cqw;
+  font-weight: 650;
+}
+
+/* Gallery */
+.smr-album {
+  display: inline-flex;
+  align-items: center;
+  gap: 1cqw;
+  padding: 1.6cqw 3cqw;
+  border-radius: 5cqw;
+  background: var(--app-card);
+  font-size: 3.6cqw;
+  font-weight: 600;
+}
+
+.smr-album svg {
+  width: 3.6cqw;
+  height: 3.6cqw;
+}
+
+.smr-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9cqw;
+  margin-inline: -5cqw;
+}
+
+.smr-thumbs > span {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #22252c;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.smr-thumbs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.smr-thumb-more img {
+  transform: scale(1.7) translate(12%, 8%);
+}
+
+.smr-thumbs small {
+  position: absolute;
+  right: 1.6cqw;
+  bottom: 1.4cqw;
+  font-size: 3cqw;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.smr-thumbs .is-picked {
+  z-index: 1;
+  box-shadow: inset 0 0 0 1cqw var(--app-green);
+  transform: scale(0.92);
+}
+
+.smr-thumbs .is-picked img {
+  opacity: 0.75;
+}
+
+/* Preview player */
+.smr-preview {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 3.4cqw;
+  background: #22252c;
+}
+
+.smr-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.smr-preview-pause {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 12cqw;
+  height: 12cqw;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.42);
+  translate: -50% -50%;
+}
+
+.smr-preview-pause svg {
+  width: 5cqw;
+  height: 5cqw;
+}
+
+.smr-ps .smr-bar {
+  height: 1.2cqw;
+  margin-top: 4cqw;
+}
+
+.smr-preview-times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.4cqw;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 3cqw;
+  font-variant-numeric: tabular-nums;
+}
+
+.smr-strip {
+  display: flex;
+  gap: 1.4cqw;
+  margin-top: 4cqw;
+}
+
+.smr-strip img {
+  width: 12cqw;
+  height: 12cqw;
+  flex-shrink: 0;
+  border-radius: 2cqw;
+  object-fit: cover;
+}
+
+/* The mirrored example page; it scrolls the same way on the phone and on the TV. */
+.smr-web {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--web);
+  color: var(--ink);
+}
+
+.smr-web .smr-status {
+  background: var(--web);
+}
+
+.smr-web-scroll {
+  padding: 15cqw 5cqw 20cqw;
+  animation: smr-web-scroll 6s ease-in-out 0.4s both;
+}
+
+@keyframes smr-web-scroll {
+  0%,
+  18% {
+    transform: none;
+  }
+
+  62%,
+  100% {
+    transform: translateY(-44cqw);
+  }
+}
+
+.smr-web-map {
+  position: relative;
+  height: 44cqw;
+  overflow: hidden;
+  border-radius: 4cqw;
+  background:
+    radial-gradient(60% 70% at 18% 90%, #cfe0b8 0 60%, transparent 61%),
+    radial-gradient(55% 60% at 88% 20%, #d7e5c2 0 60%, transparent 61%),
+    #a9d3f0;
+}
+
+.smr-web-route {
+  position: absolute;
+  top: 36%;
+  left: 16%;
+  width: 66%;
+  height: 46%;
+  border: 0.9cqw dashed #e8833a;
+  border-color: #e8833a transparent transparent;
+  border-radius: 50%;
+}
+
+.smr-web-map b {
+  position: absolute;
+  width: 4.4cqw;
+  height: 4.4cqw;
+  border: 1cqw solid var(--white);
+  border-radius: 50%;
+  background: #e8833a;
+  translate: -50% -50%;
+  box-shadow: 0 0.6cqw 1.4cqw rgba(0, 0, 0, 0.25);
+}
+
+.smr-web-kicker {
+  margin-top: 5cqw;
+  color: #8a7f6c;
+  font-size: 3.4cqw;
+  font-weight: 600;
+}
+
+.smr-web-title {
+  margin: 1cqw 0 4cqw;
+  font-family: var(--display);
+  font-size: 7.4cqw;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.smr-web-day {
+  margin-top: 2.4cqw;
+  padding: 3cqw 3.6cqw;
+  border-left: 1.4cqw solid var(--c);
+  border-radius: 2.4cqw;
+  background: var(--white);
+  box-shadow: 0 0.6cqw 1.6cqw rgba(60, 45, 20, 0.08);
+}
+
+.smr-web-day small {
+  display: block;
+  color: var(--c);
+  font-size: 3cqw;
+  font-weight: 700;
+}
+
+.smr-web-day strong {
+  display: block;
+  font-size: 4.4cqw;
+  font-weight: 650;
+}
+
+.smr-web-list {
+  display: grid;
+  gap: 2cqw;
+  margin-top: 2.4cqw;
+  padding: 3.4cqw 3.6cqw;
+  border-radius: 2.4cqw;
+  background: var(--white);
+  list-style: none;
+  font-size: 4cqw;
+  font-weight: 500;
+}
+
+.smr-web-list li {
+  display: flex;
+  align-items: center;
+  gap: 2.4cqw;
+}
+
+.smr-web-list i {
+  width: 4.4cqw;
+  height: 4.4cqw;
+  flex-shrink: 0;
+  border: 0.6cqw solid #c9bfae;
+  border-radius: 1.2cqw;
+}
+
+.smr-web-list .is-done {
+  color: #9a917f;
+  text-decoration: line-through;
+}
+
+.smr-web-list .is-done i {
+  border-color: #2fae6a;
+  background: #2fae6a;
+}
+
+.smr-web-bar {
+  position: absolute;
+  right: 5cqw;
+  bottom: 4cqw;
+  left: 5cqw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.8cqw;
+  height: 11cqw;
+  border-radius: 6cqw;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1cqw 3cqw rgba(60, 45, 20, 0.16);
+  font-size: 3.8cqw;
+  font-weight: 500;
+}
+
+.smr-web-bar svg {
+  width: 3.6cqw;
+  height: 3.6cqw;
+  color: #8a7f6c;
+}
+
+.smr-web-bar svg:last-child {
+  position: absolute;
+  right: 4cqw;
+}
+
+/* iOS-style banner when the TV connects */
+.smr-banner {
+  position: absolute;
+  top: 13cqw;
+  right: 3cqw;
+  left: 3cqw;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2.6cqw;
+  padding: 2.6cqw;
+  border-radius: 5cqw;
+  background: rgba(46, 49, 57, 0.96);
+  box-shadow: 0 2cqw 5cqw rgba(0, 0, 0, 0.4);
+  animation: smr-banner 1.7s var(--ease-out) both;
+}
+
+.smr-banner img {
+  width: 9cqw;
+  height: 9cqw;
+  border-radius: 2.2cqw;
+}
+
+.smr-banner span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.smr-banner strong {
+  font-size: 3.8cqw;
+  font-weight: 650;
+}
+
+.smr-banner small {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 3.4cqw;
+}
+
+@keyframes smr-banner {
+  0% {
+    opacity: 0;
+    transform: translateY(-6cqw) scale(0.94);
+  }
+
+  18%,
+  82% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-3cqw);
+  }
+}
+
+.smr-flyer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 8;
+  width: 0;
+  height: 0;
+  object-fit: cover;
+  opacity: 0;
+  box-shadow: 0 1.6cqw 3cqw -1cqw rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* Source switcher and caption under the TV, beside the phone. */
+.smr-stage-foot {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: calc(var(--phone-top) + var(--phone) * 2.1667 - var(--tv-width) * 0.5625);
+  margin-top: 1.8cqw;
+  padding-right: calc(var(--edge, 0px) + var(--bleed, 0px));
+  padding-left: calc(var(--phone) + 3.5cqw);
+}
+
+.smr-tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.smr-tab {
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.smr-tab:hover {
+  color: var(--white);
+}
+
+.smr-tab[aria-selected='true'] {
+  background: var(--white);
+  color: var(--navy);
+}
+
+.smr-tab:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: 2px;
+}
+
+.smr-caption {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.smr-caption span {
+  margin-right: 6px;
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* Tablets: a bigger phone. */
+@container smr-stage (max-width: 980px) {
+  .smr-stage {
+    --tv-left: 15cqw;
+    --tv-width: 85cqw;
+    --phone: 21cqw;
+    --phone-top: 13cqw;
+  }
+}
+
+/* Phones: the phone takes a bigger share, tabs and caption stack beside it. */
+@container smr-stage (max-width: 620px) {
+  .smr-stage {
+    --tv-left: 21cqw;
+    --tv-width: 79cqw;
+    --phone: 29cqw;
+    --phone-top: 9cqw;
+  }
+
+  .smr-tv {
+    padding: 0.8cqw;
+    border-radius: 1.2cqw;
+  }
+
+  .smr-stage-screens {
+    height: calc(var(--tv-width) * 0.5625 + 1.6cqw);
+  }
+
+  .smr-stage-foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 3.4cqw;
+    padding-left: calc(var(--phone) + 4cqw);
+  }
+
+  .smr-tabs {
+    align-self: stretch;
+  }
+
+  .smr-tab {
+    flex: 1;
+    height: 36px;
+    padding: 0 4px;
+    font-size: 13px;
+  }
+
+  .smr-caption {
+    font-size: 14px;
+  }
+
+  .smr-caption span {
+    display: block;
+    margin: 0 0 2px;
+  }
+}
+
+/* ---------- Zoom: a phone photo grows into the whole screen ---------- */
+
+.smr-zoom {
+  --p: 0;
+  --q: 0;
+  position: relative;
+  height: 270vh;
+  background: var(--navy);
+}
+
+.smr-zoom-stage {
+  --w0: 220px;
+  --h0: 476px;
+  --x0: 73cqw;
+  --y0: 52cqh;
+  --h1: min(100cqh, 56.25cqw);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  container: smr-zoom / size;
+}
+
+.smr-zoom-head {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  translate: 0 -50%;
+}
+
+.smr-zoom-head > * {
+  max-width: min(720px, 52cqw);
+}
+
+.smr-zoom-light,
+.smr-zoom-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+/* The room lights up as the picture grows: a fixed blurred copy that brightens and drifts along. */
+.smr-zoom-light {
+  z-index: 0;
+  width: 80cqw;
+  height: 80cqh;
+  opacity: calc(0.12 + var(--p) * 0.55);
+  transform: translate(
+    calc(-50% + (var(--x0) - 50cqw) * (1 - var(--p))),
+    calc(-50% + (var(--y0) - 50cqh) * (1 - var(--p)))
+  );
+  will-change: transform, opacity;
+}
+
+.smr-zoom-light img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(80px) saturate(1.2);
+}
+
+.smr-zoom-frame {
+  z-index: 2;
+  width: calc(var(--w0) + (100cqw - var(--w0)) * var(--p));
+  height: calc(var(--h0) + (var(--h1) - var(--h0)) * var(--p));
+  padding: calc(var(--w0) * 0.028 * (1 - var(--p)));
+  border-radius: calc(var(--w0) * 0.155 * (1 - var(--p)));
+  background: #0d0f13;
+  box-shadow:
+    inset 0 0 0 calc(2px * (1 - var(--p))) #3b404b,
+    0 40px 80px -30px rgba(0, 0, 0, calc(0.7 * (1 - var(--p))));
+  transform: translate(
+    calc(-50% + (var(--x0) - 50cqw) * (1 - var(--p))),
+    calc(-50% + (var(--y0) - 50cqh) * (1 - var(--p)))
+  );
+}
+
+.smr-zoom-frame img {
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--w0) * 0.128 * (1 - var(--p)));
+  object-fit: cover;
+}
+
+.smr-zoom-island {
+  position: absolute;
+  top: calc(var(--w0) * 0.06);
+  left: 50%;
+  width: calc(var(--w0) * 0.29);
+  height: calc(var(--w0) * 0.085);
+  border-radius: 20px;
+  background: #000;
+  opacity: calc(1 - var(--p) * 6);
+  translate: -50% 0;
+}
+
+/* At full size a lower third, like a TV caption, says what just happened. */
+.smr-zoom-third {
+  position: absolute;
+  right: 0;
+  bottom: calc((100cqh - var(--h1)) / 2);
+  left: 0;
+  z-index: 3;
+  padding: 140px 0 clamp(32px, 5cqh, 56px);
+  background: linear-gradient(to top, rgba(3, 9, 21, 0.85), rgba(3, 9, 21, 0));
+  opacity: var(--q);
+  pointer-events: none;
+}
+
+.smr-zoom-third p {
+  max-width: 680px;
+  font-size: clamp(18px, 1.6vw, 23px);
+  font-weight: 500;
+  line-height: 1.45;
+  translate: 0 calc((1 - var(--q)) * 18px);
+}
+
+/* Without motion: the finished picture, heading above it. */
+.smr-zoom[data-still='true'] {
+  --p: 1;
+  --q: 1;
+  height: auto;
+  padding-top: 128px;
+}
+
+.smr-zoom[data-still='true'] .smr-zoom-stage {
+  position: relative;
+  height: auto;
+  overflow: visible;
+  container-type: normal;
+}
+
+.smr-zoom[data-still='true'] .smr-zoom-head {
+  position: static;
+  margin-bottom: 56px;
+  translate: none;
+}
+
+.smr-zoom[data-still='true'] .smr-zoom-head > * {
+  max-width: 760px;
+}
+
+.smr-zoom[data-still='true'] .smr-zoom-light,
+.smr-zoom[data-still='true'] .smr-zoom-island {
+  display: none;
+}
+
+.smr-zoom[data-still='true'] .smr-zoom-frame {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border-radius: 0;
+  transform: none;
+}
+
+.smr-zoom[data-still='true'] .smr-zoom-frame img {
+  border-radius: 0;
+}
+
+.smr-zoom[data-still='true'] .smr-zoom-third {
+  position: relative;
+  bottom: auto;
+  padding: 36px 0 120px;
+  background: none;
+}
+
+/* ---------- Sections ---------- */
+
+.smr-section {
+  padding: 136px 0;
+  scroll-margin-top: 0;
+}
+
+/* Six ways: the app's home screen beside the list. */
+.smr-casts-grid {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  align-items: start;
+  gap: 80px;
+}
+
+.smr-casts-side {
+  position: sticky;
+  top: 112px;
+  display: grid;
+  justify-items: center;
+}
+
+.smr-casts-phone {
+  --w: 264px;
+}
+
+.smr-casts-phone .smr-ps {
+  transition: none;
+}
+
+.smr-note {
+  margin-top: 22px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.smr-note span {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.smr-casts-list {
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.smr-casts-list li {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: start;
+  gap: 28px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--line);
+  transition: opacity 0.45s ease;
+}
+
+/* The channel number sits on a tiny screen that switches on in the tile's color. */
+.smr-casts-no {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  aspect-ratio: 16 / 10;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background-color 0.4s ease,
+    border-color 0.4s ease,
+    color 0.4s ease;
+}
+
+.smr-casts-list li.is-active .smr-casts-no {
+  border-color: var(--c);
+  background: var(--c);
+  color: var(--white);
+}
+
+.smr-casts-body h3 {
+  font-family: var(--display);
+  font-size: clamp(21px, 2.3vw, 32px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+}
+
+.smr-casts-body p {
+  max-width: 560px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.smr-casts-cta {
+  margin-top: 48px;
+}
+
+@media (hover: hover) and (min-width: 1001px) {
+  .smr-casts-list li:not(.is-active) {
+    opacity: 0.5;
+  }
+
+  .smr-casts-list li:not(.is-active):hover {
+    opacity: 0.8;
+  }
+}
+
+/* Use cases: one big screen, a phone per moment in front of it. */
+.smr-uses {
+  position: relative;
+  padding-bottom: 100px;
+}
+
+.smr-uses-light {
+  position: absolute;
+  inset: 0 0 100px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.smr-uses-light img {
+  position: absolute;
+  inset: -12% -6%;
+  width: 112%;
+  height: 124%;
+  object-fit: cover;
+  opacity: 0;
+  filter: blur(90px) saturate(1.15);
+  transition: opacity 1.6s ease;
+}
+
+.smr-uses-light img.is-on {
+  opacity: 0.4;
+}
+
+.smr-uses-tv {
+  position: relative;
+  z-index: 1;
+  padding: 8px;
+  border-radius: 10px;
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 50px 90px -50px rgba(0, 0, 0, 0.9);
+}
+
+.smr-uses-picture {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #000;
+}
+
+.smr-uses-picture img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.05);
+  transition:
+    opacity 0.8s ease,
+    transform 2.6s var(--ease-out);
+}
+
+.smr-uses-picture img.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.smr-uses-third {
+  position: absolute;
+  right: 8px;
+  bottom: 108px;
+  left: 8px;
+  z-index: 2;
+  padding: 160px 48px 44px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(to top, rgba(3, 9, 21, 0.82), rgba(3, 9, 21, 0));
+  pointer-events: none;
+}
+
+.smr-uses-third h3,
+.smr-uses-third p {
+  max-width: min(520px, 46%);
+  animation: smr-in 0.8s var(--ease-out) both;
+}
+
+.smr-uses-third h3 {
+  font-family: var(--display);
+  font-size: clamp(24px, 2.8vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.smr-uses-third p {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 18px;
+  animation-delay: 0.08s;
+}
+
+.smr-uses-phones {
+  position: absolute;
+  right: 48px;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.smr-uses-phone {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+.smr-uses-device {
+  position: relative;
+  display: block;
+  width: 104px;
+  aspect-ratio: 9 / 19.5;
+  padding: 3px;
+  border-radius: 17px;
+  background: #0d0f13;
+  box-shadow:
+    inset 0 0 0 1.5px #3b404b,
+    0 24px 36px -16px rgba(0, 0, 0, 0.8);
+  opacity: 0.6;
+  transition:
+    transform 0.5s var(--ease-out),
+    opacity 0.3s ease;
+}
+
+.smr-uses-device img {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.smr-uses-cast {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--navy);
+  opacity: 0;
+  scale: 0.5;
+  transition:
+    opacity 0.3s ease,
+    scale 0.4s var(--ease-out);
+}
+
+.smr-uses-cast svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2.5;
+}
+
+.smr-uses-name {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.smr-uses-phone:hover .smr-uses-device {
+  opacity: 0.9;
+}
+
+.smr-uses-phone[aria-pressed='true'] .smr-uses-device {
+  opacity: 1;
+  transform: translateY(-18px);
+}
+
+.smr-uses-phone[aria-pressed='true'] .smr-uses-cast {
+  opacity: 1;
+  scale: 1;
+}
+
+.smr-uses-phone[aria-pressed='true'] .smr-uses-name {
+  color: var(--white);
+}
+
+.smr-uses-phone:focus-visible {
+  outline: none;
+}
+
+.smr-uses-phone:focus-visible .smr-uses-device {
+  outline: 2px solid var(--white);
+  outline-offset: 4px;
+}
+
+/* How it works: each step on the app's own screenshot. */
+.smr-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+  padding: 0;
+  list-style: none;
+}
+
+.smr-steps li {
+  display: grid;
+  align-content: start;
+  gap: 32px;
+}
+
+.smr-step-shot {
+  width: 100%;
+  max-width: 236px;
+  height: auto;
+  aspect-ratio: 600 / 1298;
+  border-radius: 24px;
+  background: var(--paper);
+  box-shadow: 0 36px 60px -36px rgba(7, 19, 49, 0.55);
+  transition: transform 0.6s var(--ease-out);
+}
+
+.smr-steps li:hover .smr-step-shot {
+  transform: translateY(-8px);
+}
+
+.smr-step-text {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  column-gap: 18px;
+  max-width: 340px;
+}
+
+.smr-step-no {
+  display: grid;
+  grid-row: span 2;
+  place-items: center;
+  width: 52px;
+  aspect-ratio: 16 / 10;
+  border-radius: 7px;
+  background: var(--navy);
+  color: var(--green);
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.smr-steps h3 {
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+}
+
+.smr-steps p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.smr-how-cta {
+  margin-top: 64px;
+}
+
+/* FAQ: a TV settings menu with a focus ring that glides between rows. */
+.smr-settings {
+  border: 10px solid #000;
+  border-radius: 18px;
+  background: #0b1840;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 60px 100px -60px rgba(0, 0, 0, 0.9);
+  padding: 34px 44px 28px;
+}
+
+.smr-settings-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.smr-settings-bar span + span {
+  color: var(--white);
+}
+
+.smr-settings-bar span + span::before {
+  content: '›';
+  margin-right: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.smr-settings-list {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  column-gap: 64px;
+  row-gap: 4px;
+}
+
+.smr-settings-item {
+  display: contents;
+}
+
+.smr-settings-q {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  grid-column: 1;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 60px;
+  padding: 14px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  transition:
+    color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.smr-settings-q:focus-visible {
+  outline: none;
+}
+
+.smr-settings-item[data-active='true'] .smr-settings-q {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--white);
+}
+
+.smr-settings-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.smr-settings-value {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.smr-settings-q svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  opacity: 0.45;
+  transition: rotate 0.3s var(--ease-out);
+}
+
+.smr-settings-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  border: 2px solid var(--white);
+  border-radius: 12px;
+  pointer-events: none;
+  transition:
+    transform 0.45s var(--ease-out),
+    height 0.45s var(--ease-out),
+    width 0.45s var(--ease-out);
+}
+
+.smr-settings-a {
+  grid-row: 1 / span 7;
+  grid-column: 2;
+  padding-top: 14px;
+  animation: smr-in 0.45s var(--ease-out) both;
+}
+
+.smr-settings-a-title {
+  margin-bottom: 16px;
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+
+.smr-settings-a p:last-child {
+  max-width: 480px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 18px;
+}
+
+.smr-settings-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-dark);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+}
+
+.smr-settings-hint kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--white);
+  font: inherit;
+  font-size: 12px;
+}
+
+.smr-settings-hint kbd:nth-of-type(3) {
+  margin-left: 14px;
+}
+
+/* ---------- Final call: a TV switching on ---------- */
+
+.smr-final {
+  position: relative;
+  padding: 150px 0;
+  overflow: clip;
+  background: var(--night);
+}
+
+.smr-final-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 72px;
+}
+
+.smr-final-room {
+  position: relative;
+  margin-left: calc(-1 * (var(--edge) + 5vw));
+}
+
+.smr-final-light {
+  position: absolute;
+  inset: -16% -8%;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 2.4s ease 1.1s;
+  pointer-events: none;
+}
+
+.smr-final-light img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(90px) saturate(1.2);
+}
+
+.smr-final-room[data-on='true'] .smr-final-light {
+  opacity: 0.48;
+}
+
+.smr-final-tv {
+  position: relative;
+  z-index: 1;
+  padding: 8px;
+  border-radius: 10px;
+  background: #000;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 50px 90px -50px rgba(0, 0, 0, 0.9);
+}
+
+.smr-final-screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 3px;
+  background: radial-gradient(120% 90% at 30% 0%, #0e121b 0%, #040609 60%);
+}
+
+.smr-final-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.04) 0 36%, transparent 36.2%);
+  pointer-events: none;
+}
+
+.smr-final-screen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Until it powers on, two dark halves cover the picture. */
+.smr-final-shutter {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.smr-final-shutter::before,
+.smr-final-shutter::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 50.5%;
+  background: #05070b;
+}
+
+.smr-final-shutter::before {
+  top: 0;
+  transform-origin: top;
+}
+
+.smr-final-shutter::after {
+  bottom: 0;
+  transform-origin: bottom;
+}
+
+.smr-final-line {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--white);
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+/* Power on: a bright line runs across, then the picture opens up from it and settles. */
+.smr-final-room[data-on='true'] .smr-final-line {
+  animation: smr-line 1.25s var(--ease-out) 0.25s both;
+}
+
+.smr-final-room[data-on='true'] .smr-final-shutter::before,
+.smr-final-room[data-on='true'] .smr-final-shutter::after {
+  animation: smr-shutter 0.8s var(--ease-io) 0.75s both;
+}
+
+.smr-final-room[data-on='true'] .smr-final-screen img {
+  animation: smr-settle 1.8s ease 0.75s both;
+}
+
+@keyframes smr-line {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1) scaleY(24);
+  }
+}
+
+@keyframes smr-shutter {
+  to {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes smr-settle {
+  from {
+    filter: brightness(1.9) saturate(0.4);
+  }
+}
+
+.smr-final-title {
+  font-size: clamp(30px, 3.9vw, 54px);
+}
+
+.smr-final-sub {
+  max-width: 440px;
+  margin: 22px 0 34px;
+  color: var(--muted-dark);
+  font-size: 19px;
+}
+
+.smr-final-copy .smr-terms {
+  max-width: 360px;
+}
+
+/* ---------- Footer and dock ---------- */
+
+.smr-footer {
+  padding: 0 0 36px;
+  background: var(--night);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+}
+
+.smr-footer-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 28px;
+}
+
+.smr-footer-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: var(--gutter);
+  left: var(--gutter);
+  height: 1px;
+  background: var(--line-dark);
+}
+
+.smr-footer-id {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 680px;
+}
+
+.smr-footer-id img {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 7px;
+}
+
+.smr-footer nav {
+  display: flex;
+  flex-shrink: 0;
+  gap: 22px;
+}
+
+.smr-footer a {
+  color: var(--white);
+  text-decoration: none;
+}
+
+.smr-footer a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.smr-footer a:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: 3px;
+}
+
+/* On phones, a TV-style info bar at the bottom; its line shows how far down the page you are. */
+.smr-dock {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  background: rgba(5, 14, 37, 0.96);
+  color: var(--white);
+  box-shadow: 0 -20px 40px -20px rgba(0, 0, 0, 0.6);
+  visibility: hidden;
+  transform: translateY(105%);
+  transition:
+    transform 0.4s var(--ease-out),
+    visibility 0s linear 0.4s;
+}
+
+.smr-dock.is-visible {
+  visibility: visible;
+  transform: none;
+  transition: transform 0.4s var(--ease-out);
+}
+
+.smr-dock-line {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.smr-dock-line b {
+  display: block;
+  height: 100%;
+  background: var(--green);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+}
+
+.smr-dock img {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.smr-dock-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.smr-dock-text strong {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.smr-dock-text small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smr-dock .smr-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* ---------- Narrower screens ---------- */
+
+@media (max-width: 1180px) {
+  .smr-nav {
+    display: none;
+  }
+
+  /* Proof points move under the offer as one plain line. */
+  .smr-hero > .smr-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .smr-proof {
+    position: static;
+    order: 2;
+    display: block;
+    margin-top: 28px;
+    color: rgba(255, 255, 255, 0.66);
+    line-height: 1.6;
+  }
+
+  .smr-proof li {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  .smr-proof li + li::before {
+    content: none;
+  }
+
+  .smr-proof li:not(:last-child)::after {
+    content: '·';
+    margin: 0 10px;
+    color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+@media (max-width: 1080px) {
+  .smr-hero-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+    margin-top: 36px;
+  }
+
+  .smr-hero-stage {
+    order: -1;
+    --bleed: 6vw;
+  }
+
+  .smr-hero-copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 40px;
+    padding-top: 0;
+  }
+
+  .smr-offer {
+    margin-top: 0;
+  }
+
+  .smr-casts-grid {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 48px;
+  }
+
+  .smr-casts-phone {
+    --w: 230px;
+  }
+
+  .smr-uses-third h3,
+  .smr-uses-third p {
+    max-width: 100%;
+  }
+
+  .smr-uses-third {
+    padding-right: 470px;
+  }
+
+  .smr-uses-device {
+    width: 88px;
+  }
+
+  .smr-uses-phones {
+    right: 28px;
+    gap: 12px;
+  }
+
+  .smr-uses-third p {
+    font-size: 16px;
+  }
+
+  .smr-settings-list {
+    column-gap: 40px;
+  }
+
+  .smr-final-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 56px;
+  }
+
+  .smr-final-room {
+    margin-right: calc(-1 * var(--edge));
+    margin-left: calc(-1 * var(--edge));
+  }
+
+  .smr-final-tv {
+    border-radius: 0;
+  }
+
+  .smr-final-copy {
+    max-width: 640px;
+  }
+}
+
+@media (max-width: 900px) {
+  .smr-header-cta {
+    display: none;
+  }
+
+  .smr-dock {
+    display: flex;
+  }
+
+  .smr-footer {
+    padding-bottom: 112px;
+  }
+
+  .smr-zoom-stage {
+    --x0: 70cqw;
+    --w0: 190px;
+    --h0: 412px;
+  }
+
+  .smr-uses {
+    padding-bottom: 0;
+  }
+
+  .smr-uses-light {
+    inset: 0 0 auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .smr-uses-third {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    padding: 28px 0 0;
+    background: none;
+  }
+
+  .smr-uses-third h3,
+  .smr-uses-third p {
+    max-width: 560px;
+  }
+
+  .smr-uses-phones {
+    position: relative;
+    right: auto;
+    justify-content: flex-start;
+    gap: 14px;
+    margin-top: 36px;
+  }
+
+  .smr-uses-device {
+    width: 84px;
+  }
+
+  .smr-steps {
+    gap: 28px;
+  }
+
+  .smr-settings {
+    padding: 28px 28px 24px;
+  }
+
+  .smr-settings-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .smr-settings-item {
+    display: block;
+    border-radius: 12px;
+    transition: background-color 0.25s ease;
+  }
+
+  .smr-settings-item[data-active='true'] {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .smr-settings-item[data-active='true'] .smr-settings-q {
+    background: transparent;
+  }
+
+  .smr-settings-item[data-active='true'] .smr-settings-q svg {
+    rotate: 90deg;
+  }
+
+  .smr-settings-a {
+    padding: 0 18px 20px;
+  }
+
+  .smr-settings-a-title,
+  .smr-settings-hint {
+    display: none;
+  }
+
+  .smr-settings-a p:last-child {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .smr-casts-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+
+  /* The phone rises into view from the bottom edge of its frame. */
+  .smr-casts-side {
+    position: relative;
+    top: auto;
+    height: 330px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: var(--paper);
+    padding-top: 28px;
+  }
+
+  .smr-casts-phone {
+    --w: 220px;
+  }
+
+  .smr-note {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    padding: 30px 16px 14px;
+    background: linear-gradient(to top, var(--paper) 45%, rgba(238, 241, 247, 0));
+    text-align: center;
+  }
+
+  .smr-casts-list li {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 18px;
+    padding: 24px 0;
+  }
+
+  .smr-casts-no {
+    width: 56px;
+    font-size: 13px;
+  }
+
+  .smr-casts-body p {
+    font-size: 16px;
+  }
+
+  .smr-steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .smr-steps li {
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+  }
+
+  .smr-step-shot {
+    border-radius: 14px;
+  }
+
+  .smr-step-text {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .smr-step-no {
+    grid-row: auto;
+    width: 44px;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+
+  .smr-steps h3 {
+    font-size: 19px;
+  }
+
+  .smr-steps p {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 640px) {
+  .smr {
+    --gutter: 20px;
+  }
+
+  .smr-header-row {
+    gap: 12px;
+    height: 60px;
+  }
+
+  .smr-identity {
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .smr-identity img {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  .smr-clock {
+    font-size: 14px;
+  }
+
+  .smr-hero {
+    padding: 16px 0 72px;
+  }
+
+  .smr-hero-body {
+    gap: 26px;
+    margin-top: 22px;
+  }
+
+  .smr-hero-stage {
+    --bleed: 8vw;
+  }
+
+  .smr-hero-copy {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .smr-lead {
+    font-size: 16px;
+  }
+
+  .smr-price strong {
+    font-size: 22px;
+  }
+
+  .smr-btn:not(.smr-btn-small) {
+    width: 100%;
+  }
+
+  .smr-section {
+    padding: 96px 0;
+  }
+
+  .smr-head {
+    margin-bottom: 44px;
+  }
+
+  .smr-osd {
+    gap: 12px;
+    margin-top: 20px;
+    font-size: 13px;
+  }
+
+  .smr-head-text {
+    margin-top: 18px;
+    font-size: 17px;
+  }
+
+  .smr-zoom {
+    height: 230vh;
+  }
+
+  .smr-zoom-stage {
+    --w0: 150px;
+    --h0: 325px;
+    --x0: 50cqw;
+    --y0: 64cqh;
+    --h1: 56.25cqw;
+  }
+
+  .smr-zoom-head {
+    top: 84px;
+    translate: none;
+  }
+
+  .smr-zoom-head > * {
+    max-width: 100%;
+  }
+
+  .smr-zoom-third {
+    top: calc(50cqh + 28.125cqw);
+    bottom: auto;
+    padding: 26px 0 0;
+    background: none;
+  }
+
+  .smr-zoom-third p {
+    font-size: 17px;
+  }
+
+  .smr-zoom[data-still='true'] {
+    padding-top: 96px;
+  }
+
+  .smr-zoom[data-still='true'] .smr-zoom-third {
+    top: auto;
+    padding: 26px 0 96px;
+  }
+
+  .smr-uses-tv {
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 5px 0;
+    border-radius: 0;
+  }
+
+  .smr-uses-picture {
+    border-radius: 0;
+  }
+
+  .smr-uses-third p {
+    font-size: 16px;
+  }
+
+  .smr-uses-phones {
+    justify-content: space-between;
+    gap: 0;
+    margin-top: 40px;
+  }
+
+  .smr-uses-device {
+    width: min(76px, 19vw);
+    border-radius: 13px;
+  }
+
+  .smr-uses-device img {
+    border-radius: 10px;
+  }
+
+  .smr-uses-cast {
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .smr-uses-name {
+    display: none;
+  }
+
+  .smr-uses-phone[aria-pressed='true'] .smr-uses-device {
+    transform: translateY(-10px);
+  }
+
+  .smr-settings {
+    margin-inline: -6px;
+    border-width: 6px;
+    border-radius: 16px;
+    padding: 18px 10px 10px;
+  }
+
+  .smr-settings-bar {
+    margin: 0 8px 14px;
+  }
+
+  .smr-settings-q {
+    min-height: 56px;
+    padding: 13px 14px;
+    font-size: 16px;
+  }
+
+  .smr-settings-value {
+    display: none;
+  }
+
+  .smr-settings-a {
+    padding: 0 14px 18px;
+  }
+
+  .smr-final {
+    padding: 104px 0 96px;
+  }
+
+  .smr-final-tv {
+    padding: 5px 0;
+  }
+
+  .smr-final-sub {
+    font-size: 17px;
+  }
+
+  .smr-footer-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 380px) {
+  .smr-clock span {
+    display: none;
+  }
+
+  .smr-dock-text small {
+    display: none;
+  }
+
+  .smr-steps li {
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .smr-casts-side {
+    height: 300px;
+  }
+
+  .smr-casts-phone {
+    --w: 200px;
+  }
+}
+
+/* No motion: everything in its final place. */
+@media (prefers-reduced-motion: reduce) {
+  .smr *,
+  .smr *::before,
+  .smr *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .smr-final-shutter,
+  .smr-final-line {
+    display: none;
+  }
+
+  .smr-final-light {
+    opacity: 0.48;
+  }
+
+  .smr-uses-picture img {
+    transform: none;
+  }
+}
